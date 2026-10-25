@@ -40,7 +40,14 @@ Exception handlers in `api/errors.py` return RFC 7807 `application/problem+json`
 |----------------------------------------------------------------------------------|------|-----------------------------------------------------|
 | `TICKET_NOT_FOUND`, `OPERATOR_NOT_FOUND`                                         | 404  | same as source                                      |
 | `CONCURRENCY_CONFLICT`                                                           | 409  | `CONCURRENCY_CONFLICT`                              |
-| `INVALID_TRANSITION`, `DIAGNOSIS_REQUIRED`, `COMMENT_REQUIRED`, `COMMENT_EMPTY`  | 422  | same as source                                      |
+| `INVALID_TRANSITION`, `DIAGNOSIS_REQUIRED`, `COMMENT_REQUIRED`, `COMMENT_EMPTY`, `TICKET_CLOSED` | 422  | same as source                                      |
 | Request validation                                                               | 400  | `VALIDATION_ERROR` (with `errors[{field,message}]`) |
+| Data rejected by MySQL (errno 3819 CHECK, 1406 data too long)                    | 400  | `VALIDATION_ERROR` (no `errors[]`)                  |
+| Framework errors (unknown route, 405, ...)                                       | 404, 405, ... | `HTTP_<status>` (e.g. `HTTP_404`)          |
 | Database unavailable                                                             | 503  | `DATABASE_UNAVAILABLE`                              |
 | Unknown                                                                          | 500  | `INTERNAL_ERROR`                                    |
+
+Notes:
+
+- A blank comment is rejected at the API with 400 `VALIDATION_ERROR` (Pydantic `min_length=1`). `COMMENT_EMPTY` (422) only appears at service or stored-procedure level.
+- `TICKET_CLOSED` is raised when assigning or unassigning a ticket in a final state (`RESOLVED`, `CANCELLED`).

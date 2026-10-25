@@ -18,8 +18,8 @@ sequenceDiagram
         API-->>FE: 400 ProblemDetails (VALIDATION_ERROR, errors[])
         FE-->>Reporter: Show field errors
     else Valid
-        API->>SVC: create_ticket(data)
-        SVC->>REPO: create(data)
+        API->>SVC: TicketService.create(title, description, asset_code, priority, reported_by)
+        SVC->>REPO: TicketRepository.create_ticket(...)
         REPO->>DB: CALL sp_create_ticket(...)
         Note over DB: START TRANSACTION<br/>INSERT ticket<br/>INSERT ticket_history (CREATED)<br/>COMMIT
         DB-->>REPO: ticket row
@@ -27,6 +27,10 @@ sequenceDiagram
         SVC-->>API: Ticket (with allowedTransitions)
         API-->>FE: 201 Ticket
         FE-->>Reporter: Show new ticket code
+    end
+    opt Database down
+        REPO-->>API: DatabaseUnavailable
+        API-->>FE: 503 ProblemDetails (DATABASE_UNAVAILABLE)
     end
 ```
 
@@ -44,9 +48,18 @@ sequenceDiagram
     Operator->>FE: Pick an allowed transition
     FE->>API: POST /api/tickets/{id}/transitions
     API->>SVC: change_status(id, toStatus, diagnosis, comment, actor, version)
-    SVC->>REPO: get(id)
+    SVC->>REPO: TicketRepository.get_ticket(id)
     REPO-->>SVC: ticket
-    SVC->>SVC: state_machine.validate(from, to, diagnosis, comment)
+    alt Ticket not found
+        SVC-->>API: TicketNotFound
+        API-->>FE: 404 ProblemDetails
+    else Version differs from ticket.version
+        SVC-->>API: ConcurrencyConflict
+        API-->>FE: 409 ProblemDetails
+        FE-->>Operator: Show error
+    else Version matches
+        SVC->>SVC: validate_transition(current, to, diagnosis, comment)
+    end
     alt Invalid transition or missing diagnosis/comment
         SVC-->>API: DomainError
         API-->>FE: 422 ProblemDetails
@@ -70,5 +83,9 @@ sequenceDiagram
             API-->>FE: HistoryEvent[]
             FE-->>Operator: Refresh history and show toast
         end
+    end
+    opt Database down
+        REPO-->>API: DatabaseUnavailable
+        API-->>FE: 503 ProblemDetails (DATABASE_UNAVAILABLE)
     end
 ```

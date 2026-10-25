@@ -28,10 +28,12 @@ Guards: `[diagnosis]` = a diagnosis is required, `[comment]` = a comment is requ
 
 Any other pair is invalid, including a same-status transition and `PENDING -> RESOLVED`.
 
+Assignment rule: assignment (and unassignment) is blocked on final states. Assigning a `RESOLVED` or `CANCELLED` ticket fails with `TICKET_CLOSED` (HTTP 422), checked by `TicketService.assign` and by `sp_assign_ticket`.
+
 ## Where it is enforced
 
 Defense in depth, three layers:
 
 1. **Frontend**: shows only the actions listed in the ticket's `allowedTransitions`, and asks for the diagnosis or comment when required. This is UX only.
-2. **Service layer**: `domain/state_machine.py` holds `TRANSITIONS` (a mirror of `allowed_transition`) and `validate(from, to, diagnosis, comment)`. `TicketService` calls it before the repository and raises `InvalidTransition`, `DiagnosisRequired` or `CommentRequired` (HTTP 422).
+2. **Service layer**: `domain/state_machine.py` holds `TRANSITIONS` (a mirror of `allowed_transition`) and `validate_transition(current, to, diagnosis, comment)`. `TicketService` calls it before the repository and raises `InvalidTransition`, `DiagnosisRequired` or `CommentRequired` (HTTP 422).
 3. **Database**: stored procedure `sp_change_ticket_status` reads `allowed_transition` inside the transaction and signals `INVALID_TRANSITION`, `DIAGNOSIS_REQUIRED` or `COMMENT_REQUIRED`. It also protects against races via `FOR UPDATE` and the `version` check.

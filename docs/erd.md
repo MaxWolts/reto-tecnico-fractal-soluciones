@@ -5,7 +5,7 @@ MySQL 8, InnoDB, utf8mb4.
 ```mermaid
 erDiagram
     operator |o--o{ ticket : "assigned to"
-    ticket ||--o{ ticket_history : "has events"
+    ticket ||--|{ ticket_history : "has events"
 
     operator {
         INT id PK "AUTO_INCREMENT"
@@ -25,7 +25,7 @@ erDiagram
         INT assigned_operator_id FK "NULL, ON DELETE SET NULL"
         VARCHAR_100 reported_by "NOT NULL"
         DATETIME_3 created_at "NOT NULL, DEFAULT CURRENT_TIMESTAMP_3"
-        DATETIME_3 updated_at "NOT NULL, ON UPDATE CURRENT_TIMESTAMP_3"
+        DATETIME_3 updated_at "NOT NULL, DEFAULT CURRENT_TIMESTAMP_3, ON UPDATE CURRENT_TIMESTAMP_3"
         INT version "NOT NULL, DEFAULT 1"
     }
 
@@ -55,6 +55,7 @@ Type suffixes are lengths (`VARCHAR_100` = `VARCHAR(100)`, `DATETIME_3` = `DATET
 - `ticket` to `ticket_history` is 1-N and the history is mandatory: `sp_create_ticket` inserts the ticket and its `CREATED` event in one transaction, so every ticket has at least one event.
 - `operator` to `ticket` is optional on both sides: a ticket may be unassigned, an operator may have no tickets.
 - `allowed_transition` is a lookup table with no FK. `status` is a closed enum enforced by a `CHECK` constraint on `ticket`, so an FK would add no safety. The table only holds the rules (`requires_diagnosis`, `requires_comment`) read by `sp_change_ticket_status`.
+- `ticket.id` is `AUTO_INCREMENT` and starts at 1001 in the schema (`AUTO_INCREMENT=1001`). `03_seed.sql` loads tickets with explicit ids and then sets the counter to 1100, so the first new ticket after seeding is 1100.
 - `event_type` values: `CREATED`, `STATUS_CHANGED`, `COMMENT`, `ASSIGNED`.
 - Indexes: `ticket(status)`, `ticket(created_at)`, `ticket(assigned_operator_id)`, `ticket_history(ticket_id, created_at)`, `ticket_history(event_type, created_at)`.
 
@@ -65,4 +66,4 @@ Type suffixes are lengths (`VARCHAR_100` = `VARCHAR(100)`, `DATETIME_3` = `DATET
 - `CHECK` constraints: `ticket.priority` in (LOW, MEDIUM, HIGH, CRITICAL), `ticket.status` in (PENDING, IN_PROGRESS, RESOLVED, CANCELLED), `ticket_history.event_type` in (CREATED, STATUS_CHANGED, COMMENT, ASSIGNED).
 - `ticket.assigned_operator_id` is `ON DELETE SET NULL`: removing an operator unassigns their tickets.
 - Optimistic concurrency: `ticket.version` starts at 1 and is incremented on every status change or assignment. The caller sends the expected version; a mismatch raises `CONCURRENCY_CONFLICT`.
-- Row lock: `sp_change_ticket_status` reads the ticket with `SELECT ... FOR UPDATE` inside the transaction.
+- Row locks: `sp_change_ticket_status` and `sp_assign_ticket` read the ticket with `SELECT ... FOR UPDATE` inside the transaction. `sp_add_comment` (ticket) and the operator lookup in `sp_assign_ticket` use `SELECT ... FOR SHARE`.
