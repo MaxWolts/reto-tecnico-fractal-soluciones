@@ -37,9 +37,35 @@ def open_connection() -> Connection:
         raise DatabaseUnavailable(str(exc)) from exc
 
 
-def get_connection() -> Iterator[Connection]:
-    """FastAPI dependency: one connection per request, always closed."""
-    conn = open_connection()
+class LazyConnection:
+    """Opens the real connection on first cursor use, so requests that fail
+    validation never touch the database."""
+
+    def __init__(self) -> None:
+        self._conn: Connection | None = None
+
+    def cursor(self, *args, **kwargs):
+        if self._conn is None:
+            self._conn = open_connection()
+        return self._conn.cursor(*args, **kwargs)
+
+    def commit(self) -> None:
+        if self._conn is not None:
+            self._conn.commit()
+
+    def rollback(self) -> None:
+        if self._conn is not None:
+            self._conn.rollback()
+
+    def close(self) -> None:
+        if self._conn is not None:
+            self._conn.close()
+            self._conn = None
+
+
+def get_connection() -> Iterator[LazyConnection]:
+    """FastAPI dependency: one lazy connection per request, closed if opened."""
+    conn = LazyConnection()
     try:
         yield conn
     finally:

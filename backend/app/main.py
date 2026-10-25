@@ -1,9 +1,9 @@
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.errors import register_error_handlers
+from app.api.errors import register_error_handlers, unhandled_error_handler
 from app.api.routes import health, notifications, operators, tickets
 from app.config import get_settings
 
@@ -16,6 +16,16 @@ def create_app() -> FastAPI:
     )
 
     app = FastAPI(title="Maintenance Tickets API", docs_url="/docs")
+
+    @app.middleware("http")
+    async def catch_unhandled(request: Request, call_next):
+        # Registered before CORSMiddleware, so it sits inside it and 500
+        # responses still get CORS headers.
+        try:
+            return await call_next(request)
+        except Exception as exc:
+            return await unhandled_error_handler(request, exc)
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,

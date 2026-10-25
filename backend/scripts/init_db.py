@@ -256,6 +256,8 @@ def init_db(url: str | None = None, seed: bool = True, verbose: bool = True) -> 
             f"Cannot connect to MySQL at {params['host']}:{params['port']}: {exc}"
         ) from exc
     with conn:
+        with conn.cursor() as cur:
+            cur.execute("SET time_zone = '+00:00'")
         for path in files:
             count = apply_file(conn, path)
             if verbose:

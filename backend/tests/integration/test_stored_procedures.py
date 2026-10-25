@@ -1,14 +1,16 @@
 """Integration tests for the MySQL stored procedures.
 
-WARNING: these tests reset the database at DATABASE_URL (drop and recreate
-all tables). Point DATABASE_URL at a disposable dev database.
+WARNING: these tests reset the database at TEST_DATABASE_URL (drop and
+recreate all tables). Point it at a disposable database. DATABASE_URL is never
+used, and the tests refuse to run when both URLs are equal.
 
-Skipped automatically when DATABASE_URL is not set or MySQL is unreachable.
+Skipped automatically when TEST_DATABASE_URL is not set or MySQL is unreachable.
 Run from backend/:  python -m pytest -q -m integration
 """
 
 from __future__ import annotations
 
+import os
 from collections.abc import Iterator
 from typing import Any
 
@@ -16,21 +18,22 @@ import pymysql
 import pytest
 from pymysql.cursors import DictCursor
 
-from scripts.init_db import init_db, load_database_url, parse_database_url
+from scripts.init_db import init_db, parse_database_url
+from tests.integration_guard import resolve_test_database_url
 
 pytestmark = pytest.mark.integration
 
 ER_SIGNAL_EXCEPTION = 1644
 ER_ROW_IS_REFERENCED_2 = 1451
 
-DATABASE_URL = load_database_url()
-if not DATABASE_URL:
-    pytest.skip("DATABASE_URL not set", allow_module_level=True)
+TEST_DATABASE_URL = resolve_test_database_url(os.environ)
+if not TEST_DATABASE_URL:
+    pytest.skip("TEST_DATABASE_URL not set", allow_module_level=True)
 
 
 @pytest.fixture(scope="module")
 def conn() -> Iterator[pymysql.connections.Connection]:
-    params = parse_database_url(DATABASE_URL)
+    params = parse_database_url(TEST_DATABASE_URL)
     try:
         connection = pymysql.connect(
             **params,
@@ -41,7 +44,7 @@ def conn() -> Iterator[pymysql.connections.Connection]:
         )
     except pymysql.MySQLError as exc:
         pytest.skip(f"MySQL unreachable: {exc}")
-    init_db(DATABASE_URL, seed=False, verbose=False)
+    init_db(TEST_DATABASE_URL, seed=False, verbose=False)
     with connection:
         yield connection
 
