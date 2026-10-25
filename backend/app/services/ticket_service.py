@@ -2,7 +2,13 @@
 
 from datetime import date, datetime
 
-from app.domain.exceptions import CommentEmpty, OperatorNotFound, TicketNotFound
+from app.domain.exceptions import (
+    CommentEmpty,
+    ConcurrencyConflict,
+    OperatorNotFound,
+    TicketClosed,
+    TicketNotFound,
+)
 from app.domain.state_machine import allowed_from, validate_transition
 from app.domain.status import Priority, TicketStatus
 
@@ -85,7 +91,7 @@ class TicketService:
             operator_id=operator_id,
             date_from=date_from,
             date_to=date_to,
-            q=_clean(q),
+            q=_clean((q or "").strip().lstrip("#")),
         )
         return [_to_ticket(r) for r in rows]
 
@@ -103,6 +109,8 @@ class TicketService:
         version: int,
     ) -> dict:
         current = self._require(ticket_id)
+        if current["version"] != version:
+            raise ConcurrencyConflict()
         diagnosis, comment = _clean(diagnosis), _clean(comment)
         validate_transition(TicketStatus(current["status"]), to_status, diagnosis, comment)
         row = self._repo.change_status(
@@ -111,14 +119,16 @@ class TicketService:
         return _to_ticket(row)
 
     def add_comment(self, ticket_id: int, comment: str, actor: str) -> dict:
+        self._require(ticket_id)
         text = _clean(comment)
         if text is None:
             raise CommentEmpty()
-        self._require(ticket_id)
         return self._repo.add_comment(ticket_id, text, actor.strip())
 
     def assign(self, ticket_id: int, operator_id: int | None, actor: str, version: int) -> dict:
-        self._require(ticket_id)
+        current = self._require(ticket_id)
+        if TicketStatus(current["status"]) in (TicketStatus.RESOLVED, TicketStatus.CANCELLED):
+            raise TicketClosed()
         if operator_id is not None and not self._repo.operator_exists(operator_id):
             raise OperatorNotFound()
         row = self._repo.assign(ticket_id, operator_id, actor.strip(), version)

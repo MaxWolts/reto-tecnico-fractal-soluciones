@@ -134,6 +134,23 @@ def test_assign_and_unassign(client):
     assert r.json()["assignedOperator"] is None
 
 
+def test_assign_closed_ticket_422(client):
+    t = create(client)
+    assert move(client, t["id"], "CANCELLED", 1, comment="dup").status_code == 200
+    r = client.put(
+        f"/api/tickets/{t['id']}/assignee", json={"operatorId": 1, "actor": "Ana", "version": 2}
+    )
+    assert r.status_code == 422
+    assert r.json()["code"] == "TICKET_CLOSED"
+
+
+def test_version_out_of_range_400(client):
+    t = create(client)
+    r = move(client, t["id"], "IN_PROGRESS", 2_147_483_648)
+    assert r.status_code == 400
+    assert r.json()["errors"][0]["field"] == "version"
+
+
 def test_assign_unknown_operator_404(client):
     t = create(client)
     r = client.put(

@@ -174,7 +174,7 @@ export function TicketDrawer({ ticketId, user, operators, onClose, onChanged }: 
                         id={`${titleId}-assignee`}
                         className="drawer__input drawer__select"
                         value={ticket.assignedOperator?.id ?? ''}
-                        disabled={assigning}
+                        disabled={assigning || isFinal}
                         onChange={(e) => void changeAssignee(e.target.value)}
                       >
                         <option value="">Unassigned</option>
@@ -186,6 +186,9 @@ export function TicketDrawer({ ticketId, user, operators, onClose, onChanged }: 
                       </select>
                     ) : (
                       (ticket.assignedOperator?.name ?? 'Unassigned')
+                    )}
+                    {isOperator && isFinal && (
+                      <p className="drawer__muted">Closed tickets cannot be reassigned.</p>
                     )}
                   </dd>
                   <dt>Created</dt>

@@ -259,6 +259,7 @@ DELIMITER ;
 -- History comment = "Assigned to <operator name>" or "Unassigned".
 -- Errors (checked in this order):
 --   TICKET_NOT_FOUND      no ticket with p_ticket_id
+--   TICKET_CLOSED         ticket is RESOLVED or CANCELLED (final states)
 --   OPERATOR_NOT_FOUND    p_operator_id is not NULL and no such operator
 --   CONCURRENCY_CONFLICT  p_expected_version is NULL or not the current version
 -- Result: the updated ticket (read model).
@@ -275,6 +276,7 @@ CREATE PROCEDURE sp_assign_ticket(
 )
 BEGIN
     DECLARE v_version       INT          DEFAULT NULL;
+    DECLARE v_status        VARCHAR(20)  DEFAULT NULL;
     DECLARE v_operator_name VARCHAR(100) DEFAULT NULL;
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -285,14 +287,18 @@ BEGIN
 
     START TRANSACTION;
 
-    SELECT version
-      INTO v_version
+    SELECT version, status
+      INTO v_version, v_status
       FROM ticket
      WHERE id = p_ticket_id
        FOR UPDATE;
 
     IF v_version IS NULL THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'TICKET_NOT_FOUND';
+    END IF;
+
+    IF v_status IN ('RESOLVED', 'CANCELLED') THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'TICKET_CLOSED';
     END IF;
 
     IF p_operator_id IS NOT NULL THEN

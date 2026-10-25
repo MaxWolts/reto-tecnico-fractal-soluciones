@@ -29,7 +29,7 @@ class ChangeStatusRequest(ApiModel):
     diagnosis: Annotated[Trimmed, Field(max_length=1000)] | None = None
     comment: Annotated[Trimmed, Field(max_length=1000)] | None = None
     actor: Annotated[Trimmed, Field(min_length=1, max_length=100)]
-    version: int = Field(ge=1)
+    version: int = Field(ge=1, le=2_147_483_647)
 
     @field_validator("diagnosis", "comment")
     @classmethod
@@ -45,7 +45,7 @@ class AddCommentRequest(ApiModel):
 class AssignRequest(ApiModel):
     operator_id: int | None
     actor: Annotated[Trimmed, Field(min_length=1, max_length=100)]
-    version: int = Field(ge=1)
+    version: int = Field(ge=1, le=2_147_483_647)
 
 
 # responses
@@ -59,7 +59,7 @@ class OperatorOut(ApiModel):
 
 class OperatorRef(ApiModel):
     id: int
-    name: str | None
+    name: str
 
 
 class TransitionOut(ApiModel):

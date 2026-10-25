@@ -7,6 +7,7 @@ from app.domain.exceptions import (
     DiagnosisRequired,
     InvalidTransition,
     OperatorNotFound,
+    TicketClosed,
     TicketNotFound,
 )
 from app.domain.status import Priority
@@ -91,6 +92,11 @@ def test_stale_version_conflict(service, ticket):
         service.change_status(ticket["id"], S.IN_PROGRESS, None, None, "Ana", 7)
 
 
+def test_stale_version_beats_invalid_transition(service, ticket):
+    with pytest.raises(ConcurrencyConflict):
+        service.change_status(ticket["id"], S.RESOLVED, "x", None, "Ana", 7)
+
+
 def test_change_status_missing_ticket(service):
     with pytest.raises(TicketNotFound):
         service.change_status(5, S.IN_PROGRESS, None, None, "Ana", 1)
@@ -99,6 +105,16 @@ def test_change_status_missing_ticket(service):
 def test_comment_blank_rejected(service, ticket):
     with pytest.raises(CommentEmpty):
         service.add_comment(ticket["id"], "   ", "Ana")
+
+
+def test_comment_missing_ticket_beats_blank(service):
+    with pytest.raises(TicketNotFound):
+        service.add_comment(99, "   ", "Ana")
+
+
+def test_search_strips_leading_hash(service, ticket):
+    assert [t["id"] for t in service.list_tickets(q="#1001")] == [ticket["id"]]
+    assert len(service.list_tickets(q="#")) == 1
 
 
 def test_comment_added(service, ticket):
@@ -117,6 +133,24 @@ def test_assign_and_unassign(service, ticket):
 def test_assign_unknown_operator(service, ticket):
     with pytest.raises(OperatorNotFound):
         service.assign(ticket["id"], 99, "Ana", 1)
+
+
+@pytest.mark.parametrize("final", [S.CANCELLED, S.RESOLVED])
+def test_assign_closed_ticket(service, ticket, final):
+    if final is S.CANCELLED:
+        service.change_status(ticket["id"], final, None, "dup", "Ana", 1)
+        version = 2
+    else:
+        service.change_status(ticket["id"], S.IN_PROGRESS, None, None, "Ana", 1)
+        service.change_status(ticket["id"], final, "fixed", None, "Ana", 2)
+        version = 3
+    with pytest.raises(TicketClosed):
+        service.assign(ticket["id"], 1, "Ana", version)
+
+
+def test_assign_missing_ticket_beats_closed(service):
+    with pytest.raises(TicketNotFound):
+        service.assign(99, 1, "Ana", 1)
 
 
 def test_notifications_newest_first_with_limit(service, ticket):

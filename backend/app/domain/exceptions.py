@@ -39,6 +39,11 @@ class CommentRequired(DomainError):
     default_message = "A comment is required for this transition"
 
 
+class TicketClosed(DomainError):
+    code = "TICKET_CLOSED"
+    default_message = "The ticket is closed and can no longer be assigned"
+
+
 class CommentEmpty(DomainError):
     code = "COMMENT_EMPTY"
     default_message = "Comment must not be empty"
@@ -54,5 +59,6 @@ CODE_TO_ERROR: dict[str, type[DomainError]] = {
         DiagnosisRequired,
         CommentRequired,
         CommentEmpty,
+        TicketClosed,
     )
 }

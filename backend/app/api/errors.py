@@ -16,6 +16,7 @@ from app.domain.exceptions import (
     DomainError,
     InvalidTransition,
     OperatorNotFound,
+    TicketClosed,
     TicketNotFound,
 )
 from app.errors import DatabaseUnavailable, DataRejected
@@ -32,6 +33,7 @@ STATUS_BY_CODE: dict[str, int] = {
     DiagnosisRequired.code: 422,
     CommentRequired.code: 422,
     CommentEmpty.code: 422,
+    TicketClosed.code: 422,
 }
 
 

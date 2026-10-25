@@ -185,7 +185,8 @@ class TicketRepository:
         params: list = []
         if since is not None:
             clauses.append("h.created_at > %s")
-            params.append(since.astimezone(UTC).replace(tzinfo=None))
+            aware = since.replace(tzinfo=UTC) if since.tzinfo is None else since.astimezone(UTC)
+            params.append(aware.replace(tzinfo=None))
         params.append(limit)
         return self._select(
             "SELECT h.id, h.ticket_id, t.title AS ticket_title, h.from_status, h.to_status, "

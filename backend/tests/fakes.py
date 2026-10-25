@@ -6,6 +6,7 @@ from app.domain.exceptions import (
     CommentEmpty,
     ConcurrencyConflict,
     OperatorNotFound,
+    TicketClosed,
     TicketNotFound,
 )
 from app.domain.state_machine import TRANSITIONS, validate_transition
@@ -107,6 +108,8 @@ class FakeTicketRepository:
 
     def assign(self, ticket_id, operator_id, actor, expected_version) -> dict:
         ticket = self._locked(ticket_id, expected_version)
+        if ticket["status"] in ("RESOLVED", "CANCELLED"):
+            raise TicketClosed()
         if operator_id is not None and not self.operator_exists(operator_id):
             raise OperatorNotFound()
         ticket["assigned_operator_id"] = operator_id
