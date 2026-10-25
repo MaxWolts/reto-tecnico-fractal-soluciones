@@ -10,7 +10,6 @@ Run from backend/:  python -m pytest -q -m integration
 
 from __future__ import annotations
 
-import os
 from collections.abc import Iterator
 from typing import Any
 
@@ -18,21 +17,26 @@ import pymysql
 import pytest
 from pymysql.cursors import DictCursor
 
-from scripts.init_db import init_db, parse_database_url
-from tests.integration_guard import resolve_test_database_url
+from scripts.init_db import InitDbError, init_db, parse_database_url
+from tests.integration_guard import integration_env, resolve_test_database_url
 
 pytestmark = pytest.mark.integration
 
 ER_SIGNAL_EXCEPTION = 1644
 ER_ROW_IS_REFERENCED_2 = 1451
 
-TEST_DATABASE_URL = resolve_test_database_url(os.environ)
+TEST_DATABASE_URL = resolve_test_database_url(integration_env())
 if not TEST_DATABASE_URL:
     pytest.skip("TEST_DATABASE_URL not set", allow_module_level=True)
 
 
 @pytest.fixture(scope="module")
 def conn() -> Iterator[pymysql.connections.Connection]:
+    try:
+        # creates the database when missing, so it must run before connect
+        init_db(TEST_DATABASE_URL, seed=False, verbose=False)
+    except InitDbError as exc:
+        pytest.skip(f"MySQL unreachable: {exc}")
     params = parse_database_url(TEST_DATABASE_URL)
     try:
         connection = pymysql.connect(
@@ -44,7 +48,6 @@ def conn() -> Iterator[pymysql.connections.Connection]:
         )
     except pymysql.MySQLError as exc:
         pytest.skip(f"MySQL unreachable: {exc}")
-    init_db(TEST_DATABASE_URL, seed=False, verbose=False)
     with connection:
         yield connection
 

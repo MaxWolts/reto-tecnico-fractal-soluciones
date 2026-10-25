@@ -10,7 +10,6 @@ Run from backend/:  python -m pytest -q -m integration
 
 from __future__ import annotations
 
-import os
 from collections.abc import Iterator
 
 import pymysql
@@ -19,18 +18,23 @@ from pymysql.cursors import DictCursor
 
 from app.domain.exceptions import InvalidTransition, TicketClosed
 from app.repositories.ticket_repository import TicketRepository
-from scripts.init_db import init_db, parse_database_url
-from tests.integration_guard import resolve_test_database_url
+from scripts.init_db import InitDbError, init_db, parse_database_url
+from tests.integration_guard import integration_env, resolve_test_database_url
 
 pytestmark = pytest.mark.integration
 
-TEST_DATABASE_URL = resolve_test_database_url(os.environ)
+TEST_DATABASE_URL = resolve_test_database_url(integration_env())
 if not TEST_DATABASE_URL:
     pytest.skip("TEST_DATABASE_URL not set", allow_module_level=True)
 
 
 @pytest.fixture(scope="module")
 def repo() -> Iterator[TicketRepository]:
+    try:
+        # creates the database when missing, so it must run before connect
+        init_db(TEST_DATABASE_URL, seed=False, verbose=False)
+    except InitDbError as exc:
+        pytest.skip(f"MySQL unreachable: {exc}")
     params = parse_database_url(TEST_DATABASE_URL)
     try:
         connection = pymysql.connect(
@@ -42,7 +46,6 @@ def repo() -> Iterator[TicketRepository]:
         )
     except pymysql.MySQLError as exc:
         pytest.skip(f"MySQL unreachable: {exc}")
-    init_db(TEST_DATABASE_URL, seed=False, verbose=False)
     with connection:
         # seed=False leaves no operators; add one through the same connection
         with connection.cursor() as cur:
