@@ -5,6 +5,14 @@ Maintenance ticket workflow with an enforced state machine, a full per-ticket ev
 - Live demo: <frontend URL - TBD>
 - API docs: <backend URL>/docs - TBD
 
+## Screens
+
+Built from the reference mockup, with UX additions: filters, ticket drawer with history timeline, guarded status actions and a notification bell.
+
+![Board](docs/screens/board.png)
+
+![Ticket drawer with diagnosis and history](docs/screens/ticket-drawer.jpg)
+
 ## Features
 
 Core:
