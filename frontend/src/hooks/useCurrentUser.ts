@@ -39,5 +39,19 @@ export function useCurrentUser() {
     })
   }, [])
 
-  return { user, setRole }
+  const setName = useCallback((name: string) => {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    setUser((current) => {
+      const next = { ...current, name: trimmed }
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+      } catch {
+        // ignore
+      }
+      return next
+    })
+  }, [])
+
+  return { user, setRole, setName }
 }

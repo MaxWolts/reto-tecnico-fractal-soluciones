@@ -64,8 +64,20 @@
 }
 
 .header__name {
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
   font-size: 13px;
   color: var(--color-text-muted);
+  text-align: right;
+}
+
+.header__name:hover,
+.header__name:focus {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .header__avatar {

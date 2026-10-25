@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Role } from '../types'
 import { initials } from '../utils'
 import './Header.css'
@@ -6,11 +7,25 @@ interface HeaderProps {
   userName: string
   role: Role
   onRoleChange: (role: Role) => void
+  onNameChange: (name: string) => void
 }
 
 const ROLES: Role[] = ['Reporter', 'Operator']
 
-export function Header({ userName, role, onRoleChange }: HeaderProps) {
+export function Header({ userName, role, onRoleChange, onNameChange }: HeaderProps) {
+  const [draft, setDraft] = useState(userName)
+  const [prevName, setPrevName] = useState(userName)
+  if (prevName !== userName) {
+    setPrevName(userName)
+    setDraft(userName)
+  }
+
+  function commit() {
+    const trimmed = draft.trim()
+    if (trimmed && trimmed !== userName) onNameChange(trimmed)
+    else setDraft(userName)
+  }
+
   return (
     <header className="header">
       <div className="header__brand">
@@ -34,7 +49,19 @@ export function Header({ userName, role, onRoleChange }: HeaderProps) {
             </button>
           ))}
         </div>
-        <span className="header__name">{userName}</span>
+        <input
+          className="header__name"
+          aria-label="Your name (used as actor in the history)"
+          value={draft}
+          maxLength={100}
+          size={Math.max(8, Math.min(draft.length, 24))}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur()
+            if (e.key === 'Escape') setDraft(userName)
+          }}
+        />
         <span className="header__avatar" aria-hidden="true">
           {initials(userName)}
         </span>

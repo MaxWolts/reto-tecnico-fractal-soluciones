@@ -41,3 +41,20 @@ export function initials(name: string): string {
   const last = parts.length > 1 ? parts[parts.length - 1][0] : (parts[0][1] ?? '')
   return (first + last).toUpperCase()
 }
+
+export function transitionLabel(from: TicketStatus, to: TicketStatus): string {
+  if (to === 'CANCELLED') return 'Cancel ticket'
+  if (from === 'PENDING' && to === 'IN_PROGRESS') return 'Start work'
+  if (from === 'IN_PROGRESS' && to === 'RESOLVED') return 'Resolve'
+  if (from === 'IN_PROGRESS' && to === 'PENDING') return 'Send back to pending'
+  return `Move to ${STATUS_LABEL[to]}`
+}
+
+export function formatDateTime(iso: string): string {
+  const date = new Date(iso)
+  return Number.isNaN(date.getTime()) ? iso : date.toLocaleString()
+}
+
+export function statusModifier(status: TicketStatus): string {
+  return status.toLowerCase().replace('_', '-')
+}

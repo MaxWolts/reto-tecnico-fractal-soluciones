@@ -1,0 +1,117 @@
+.history {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.history::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 13px;
+  width: 2px;
+  background: var(--color-border);
+}
+
+.history__item {
+  position: relative;
+  display: flex;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+}
+
+.history__icon {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-navy);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.history__item--comment .history__icon {
+  background: var(--status-in-progress-fg);
+}
+.history__item--assigned .history__icon {
+  background: var(--status-pending-fg);
+}
+.history__item--created .history__icon {
+  background: var(--status-resolved-fg);
+}
+
+.history__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.history__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.history__label {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.history__change {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.history__arrow {
+  color: var(--color-text-muted);
+}
+
+.history__chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.history__chip--pending {
+  background: var(--status-pending-bg);
+  color: var(--status-pending-fg);
+}
+.history__chip--in-progress {
+  background: var(--status-in-progress-bg);
+  color: var(--status-in-progress-fg);
+}
+.history__chip--resolved {
+  background: var(--status-resolved-bg);
+  color: var(--status-resolved-fg);
+}
+.history__chip--cancelled {
+  background: var(--status-cancelled-bg);
+  color: var(--status-cancelled-fg);
+}
+
+.history__comment {
+  margin: 4px 0 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.history__meta {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.history__empty {
+  margin: 0;
+  color: var(--color-text-muted);
+}
