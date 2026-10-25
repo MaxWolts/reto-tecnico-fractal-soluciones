@@ -18,9 +18,11 @@
 
 SET NAMES utf8mb4;
 
-DELETE FROM ticket_history;
-DELETE FROM ticket;
-DELETE FROM operator;
+-- WHERE id > 0 uses the primary key, so the DELETEs also run under
+-- --safe-updates (sql_safe_updates = 1).
+DELETE FROM ticket_history WHERE id > 0;
+DELETE FROM ticket WHERE id > 0;
+DELETE FROM operator WHERE id > 0;
 ALTER TABLE ticket_history AUTO_INCREMENT = 1;
 ALTER TABLE operator AUTO_INCREMENT = 1;
 
