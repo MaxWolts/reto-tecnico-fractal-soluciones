@@ -24,7 +24,7 @@
 
 .board__columns {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--columns, 3), minmax(0, 1fr));
   gap: var(--space-4);
 }
 
@@ -63,6 +63,11 @@
 .board__chip--resolved {
   background: var(--status-resolved-bg);
   color: var(--status-resolved-fg);
+}
+
+.board__chip--cancelled {
+  background: var(--status-cancelled-bg);
+  color: var(--status-cancelled-fg);
 }
 
 .board__count {

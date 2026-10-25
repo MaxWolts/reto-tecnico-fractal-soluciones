@@ -68,3 +68,7 @@ textarea {
     transition-duration: 0.01ms !important;
   }
 }
+
+.content {
+  min-width: 0;
+}

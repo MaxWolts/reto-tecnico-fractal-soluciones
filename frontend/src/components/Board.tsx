@@ -1,19 +1,25 @@
+import type { CSSProperties } from 'react'
 import type { Ticket, TicketStatus } from '../types'
-import { STATUS_LABEL } from '../utils'
+import { STATUS_LABEL, statusModifier } from '../utils'
 import { TicketCard } from './TicketCard'
 import './Board.css'
 
-const COLUMNS: TicketStatus[] = ['PENDING', 'IN_PROGRESS', 'RESOLVED']
+const BASE_COLUMNS: TicketStatus[] = ['PENDING', 'IN_PROGRESS', 'RESOLVED']
 
 interface BoardProps {
   tickets: Ticket[]
   loading: boolean
   error: string | null
+  /** Status filter currently applied, if any. */
+  statusFilter?: TicketStatus
   onRetry: () => void
   onTicketClick: (ticket: Ticket) => void
 }
 
-export function Board({ tickets, loading, error, onRetry, onTicketClick }: BoardProps) {
+export function Board({ tickets, loading, error, statusFilter, onRetry, onTicketClick }: BoardProps) {
+  // The Cancelled column only appears when it has tickets or the filter selects it.
+  const showCancelled = statusFilter === 'CANCELLED' || tickets.some((t) => t.status === 'CANCELLED')
+  const columns = showCancelled ? [...BASE_COLUMNS, 'CANCELLED' as const] : BASE_COLUMNS
   const showSkeleton = loading && tickets.length === 0
   return (
     <section className="board" aria-label="Ticket board" aria-busy={loading}>
@@ -25,13 +31,13 @@ export function Board({ tickets, loading, error, onRetry, onTicketClick }: Board
           </button>
         </div>
       )}
-      <div className="board__columns">
-        {COLUMNS.map((status) => {
+      <div className="board__columns" style={{ '--columns': columns.length } as CSSProperties}>
+        {columns.map((status) => {
           const items = tickets.filter((t) => t.status === status)
           return (
             <div key={status} className="board__column">
               <div className="board__column-head">
-                <h2 className={`board__chip board__chip--${status.toLowerCase().replace('_', '-')}`}>
+                <h2 className={`board__chip board__chip--${statusModifier(status)}`}>
                   {STATUS_LABEL[status]}
                 </h2>
                 <span className="board__count" aria-label={`${items.length} tickets`}>

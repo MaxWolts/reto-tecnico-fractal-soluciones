@@ -1,11 +1,11 @@
 import { useId, useRef, useState, type FormEvent } from 'react'
 import { ApiError } from '../api/client'
-import { addComment, transitionTicket } from '../api/tickets'
+import { addComment, assignTicket, transitionTicket } from '../api/tickets'
 import { useToast } from '../context/ToastContext'
 import type { CurrentUser } from '../hooks/useCurrentUser'
 import { useModal } from '../hooks/useModal'
 import { useTicketDetail } from '../hooks/useTicketDetail'
-import type { AllowedTransition } from '../types'
+import type { AllowedTransition, Operator } from '../types'
 import { PRIORITY_LABEL, STATUS_LABEL, formatDateTime, statusModifier, transitionLabel } from '../utils'
 import { HistoryTimeline } from './HistoryTimeline'
 import { TransitionDialog, type TransitionPayload } from './TransitionDialog'
@@ -14,6 +14,7 @@ import './TicketDrawer.css'
 interface TicketDrawerProps {
   ticketId: number
   user: CurrentUser
+  operators: Operator[]
   onClose: () => void
   /** Called after any mutation so the board can refresh. */
   onChanged: () => void
@@ -21,7 +22,7 @@ interface TicketDrawerProps {
 
 const FINAL_STATUSES = ['RESOLVED', 'CANCELLED']
 
-export function TicketDrawer({ ticketId, user, onClose, onChanged }: TicketDrawerProps) {
+export function TicketDrawer({ ticketId, user, operators, onClose, onChanged }: TicketDrawerProps) {
   const toast = useToast()
   const { ticket, history, loading, error, reload } = useTicketDetail(ticketId)
   const panelRef = useRef<HTMLElement>(null)
@@ -33,6 +34,7 @@ export function TicketDrawer({ ticketId, user, onClose, onChanged }: TicketDrawe
   const [submitting, setSubmitting] = useState(false)
   const [comment, setComment] = useState('')
   const [commenting, setCommenting] = useState(false)
+  const [assigning, setAssigning] = useState(false)
 
   const isOperator = user.role === 'Operator'
 
@@ -75,6 +77,21 @@ export function TicketDrawer({ ticketId, user, onClose, onChanged }: TicketDrawe
       }
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function changeAssignee(value: string) {
+    if (!ticket || assigning) return
+    const operatorId = value ? Number(value) : null
+    setAssigning(true)
+    try {
+      await assignTicket(ticket.id, operatorId, user.name, ticket.version)
+      toast.success(operatorId === null ? `${ticket.code} unassigned` : `${ticket.code} assigned`)
+      await refreshAll()
+    } catch (err) {
+      handleCommonError(err, 'Could not change the assignee.')
+    } finally {
+      setAssigning(false)
     }
   }
 
@@ -148,8 +165,29 @@ export function TicketDrawer({ ticketId, user, onClose, onChanged }: TicketDrawe
                   <dd>{PRIORITY_LABEL[ticket.priority]}</dd>
                   <dt>Reporter</dt>
                   <dd>{ticket.reportedBy}</dd>
-                  <dt>Assignee</dt>
-                  <dd>{ticket.assignedOperator?.name ?? 'Unassigned'}</dd>
+                  <dt>
+                    <label htmlFor={`${titleId}-assignee`}>Assignee</label>
+                  </dt>
+                  <dd>
+                    {isOperator ? (
+                      <select
+                        id={`${titleId}-assignee`}
+                        className="drawer__input drawer__select"
+                        value={ticket.assignedOperator?.id ?? ''}
+                        disabled={assigning}
+                        onChange={(e) => void changeAssignee(e.target.value)}
+                      >
+                        <option value="">Unassigned</option>
+                        {operators.map((o) => (
+                          <option key={o.id} value={o.id}>
+                            {o.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      (ticket.assignedOperator?.name ?? 'Unassigned')
+                    )}
+                  </dd>
                   <dt>Created</dt>
                   <dd>{formatDateTime(ticket.createdAt)}</dd>
                   <dt>Updated</dt>

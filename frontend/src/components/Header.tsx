@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Role } from '../types'
 import { initials } from '../utils'
+import { NotificationBell } from './NotificationBell'
 import './Header.css'
 
 interface HeaderProps {
@@ -8,11 +9,12 @@ interface HeaderProps {
   role: Role
   onRoleChange: (role: Role) => void
   onNameChange: (name: string) => void
+  onOpenTicket: (ticketId: number) => void
 }
 
 const ROLES: Role[] = ['Reporter', 'Operator']
 
-export function Header({ userName, role, onRoleChange, onNameChange }: HeaderProps) {
+export function Header({ userName, role, onRoleChange, onNameChange, onOpenTicket }: HeaderProps) {
   const [draft, setDraft] = useState(userName)
   const [prevName, setPrevName] = useState(userName)
   if (prevName !== userName) {
@@ -36,6 +38,7 @@ export function Header({ userName, role, onRoleChange, onNameChange }: HeaderPro
         <h1 className="header__title">Maintenance · Tickets</h1>
       </div>
       <div className="header__user">
+        <NotificationBell onOpenTicket={onOpenTicket} />
         <div className="header__roles" role="group" aria-label="Role">
           {ROLES.map((r) => (
             <button
