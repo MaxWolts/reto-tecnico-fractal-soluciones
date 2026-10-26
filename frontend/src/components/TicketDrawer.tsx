@@ -3,11 +3,14 @@ import { ApiError } from '../api/client'
 import { addComment, assignTicket, transitionTicket } from '../api/tickets'
 import { useToast } from '../context/ToastContext'
 import type { CurrentUser } from '../hooks/useCurrentUser'
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
+import { useClosing } from '../hooks/useClosing'
 import { useModal } from '../hooks/useModal'
 import { useTicketDetail } from '../hooks/useTicketDetail'
 import type { AllowedTransition, Operator } from '../types'
 import { PRIORITY_LABEL, STATUS_LABEL, formatDateTime, statusModifier, transitionLabel } from '../utils'
 import { HistoryTimeline } from './HistoryTimeline'
+import { XmarkIcon } from './Icons'
 import { TransitionDialog, type TransitionPayload } from './TransitionDialog'
 import './TicketDrawer.css'
 
@@ -27,7 +30,9 @@ export function TicketDrawer({ ticketId, user, operators, onClose, onChanged }: 
   const { ticket, history, loading, error, reload } = useTicketDetail(ticketId)
   const panelRef = useRef<HTMLElement>(null)
   const titleId = useId()
-  const onKeyDown = useModal(panelRef, onClose)
+  const [closing, requestClose] = useClosing(onClose)
+  const onKeyDown = useModal(panelRef, requestClose)
+  useBodyScrollLock()
 
   const [pending, setPending] = useState<AllowedTransition | null>(null)
   const [dialogError, setDialogError] = useState<string | null>(null)
@@ -115,10 +120,13 @@ export function TicketDrawer({ ticketId, user, operators, onClose, onChanged }: 
   const isFinal = ticket ? FINAL_STATUSES.includes(ticket.status) : false
 
   return (
-    <div className="drawer__backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div
+      className={`drawer__backdrop${closing ? ' drawer__backdrop--closing' : ''}`}
+      onMouseDown={(e) => e.target === e.currentTarget && requestClose()}
+    >
       <aside
         ref={panelRef}
-        className="drawer"
+        className={`drawer${closing ? ' drawer--closing' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -139,8 +147,8 @@ export function TicketDrawer({ ticketId, user, operators, onClose, onChanged }: 
               {ticket?.title ?? (loading ? 'Loading…' : 'Ticket')}
             </h2>
           </div>
-          <button type="button" className="drawer__close" aria-label="Close ticket details" onClick={onClose}>
-            ×
+          <button type="button" className="icon-btn" aria-label="Close ticket details" onClick={requestClose}>
+            <XmarkIcon />
           </button>
         </header>
 

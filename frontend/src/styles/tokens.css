@@ -1,17 +1,27 @@
 :root {
+  color-scheme: light dark;
+
   --color-navy: #12355b;
+  --color-on-navy: #ffffff;
+  --color-on-dark: #ffffff;
   --color-text: #12355b;
-  --color-text-muted: #6b7f95;
+  /* 5.57:1 on #fff, 5.05:1 on #f1f4f9, 4.78:1 on #e9eef5 */
+  --color-text-muted: #566a80;
   --color-bg: #f1f4f9;
   --color-surface: #ffffff;
   --color-column: #e9eef5;
   --color-border: #d9e1ec;
+  --color-scrim: rgba(18, 53, 91, 0.45);
   --color-accent: #ffa800;
   --color-accent-hover: #e69800;
   --color-accent-text: #12355b;
   --color-danger: #c62f2f;
+  --color-danger-solid: #c62f2f;
   --color-danger-bg: #fdecec;
   --color-success: #1d8a4e;
+
+  --focus-ring: #12355b;
+  --focus-halo: #ffffff;
 
   --status-pending-fg: #9a5b00;
   --status-pending-bg: #fff0d1;
@@ -19,7 +29,7 @@
   --status-in-progress-bg: #dce9fb;
   --status-resolved-fg: #1d7a45;
   --status-resolved-bg: #dcf3e5;
-  --status-cancelled-fg: #5f6b7a;
+  --status-cancelled-fg: #566271;
   --status-cancelled-bg: #e4e8ee;
 
   --priority-low: #7a8ca3;
@@ -34,11 +44,58 @@
   --space-5: 24px;
   --space-6: 32px;
 
+  --control-h: 44px;
+
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
+  --radius-pill: 999px;
   --shadow-card: 0 1px 2px rgba(18, 53, 91, 0.08), 0 1px 3px rgba(18, 53, 91, 0.06);
   --shadow-raised: 0 4px 14px rgba(18, 53, 91, 0.14);
 
+  --motion-dur: 200ms;
+
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Type scale in rem: sizes follow the user's browser font setting. */
+  --text-2xs: 0.6875rem; /* 11px at 16px root */
+  --text-xs: 0.75rem; /* 12px */
+  --text-sm: 0.8125rem; /* 13px */
+  --text-base: 0.875rem; /* 14px */
+  --text-md: 0.9375rem; /* 15px */
+  --text-lg: 1rem; /* 16px */
+  --text-xl: 1.125rem; /* 18px */
+  --text-2xl: 1.375rem; /* 22px */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-navy: #8fb6e8;
+    --color-on-navy: #0e1726;
+    --color-text: #e8eef7;
+    --color-text-muted: #a3b4c9;
+    --color-bg: #0e1726;
+    --color-surface: #162235;
+    --color-column: #1c2b42;
+    --color-border: #2c3d57;
+    --color-scrim: rgba(0, 0, 0, 0.62);
+    --color-danger: #ff8f8f;
+    --color-danger-bg: #3a1519;
+    --color-success: #4cc38a;
+
+    --focus-ring: #dbe8fa;
+    --focus-halo: #0e1726;
+
+    --status-pending-fg: #ffc266;
+    --status-pending-bg: #3a2a0a;
+    --status-in-progress-fg: #8bb8f5;
+    --status-in-progress-bg: #14284a;
+    --status-resolved-fg: #6fd39a;
+    --status-resolved-bg: #11301f;
+    --status-cancelled-fg: #b4c0cf;
+    --status-cancelled-bg: #2a3547;
+
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-raised: 0 4px 14px rgba(0, 0, 0, 0.5);
+  }
 }

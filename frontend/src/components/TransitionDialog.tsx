@@ -1,5 +1,7 @@
 import { useId, useRef, useState, type FormEvent } from 'react'
 import { createPortal } from 'react-dom'
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
+import { useClosing } from '../hooks/useClosing'
 import { useModal } from '../hooks/useModal'
 import type { AllowedTransition, TicketStatus } from '../types'
 import { STATUS_LABEL, transitionLabel } from '../utils'
@@ -31,7 +33,11 @@ export function TransitionDialog({
 }: TransitionDialogProps) {
   const ref = useRef<HTMLDivElement>(null)
   const titleId = useId()
-  const onKeyDown = useModal(ref, onCancel)
+  const [closing, requestClose] = useClosing(onCancel)
+  const onKeyDown = useModal(ref, requestClose)
+  useBodyScrollLock()
+  const isCancel = transition.toStatus === 'CANCELLED'
+  const actionLabel = transitionLabel(fromStatus, transition.toStatus)
   const [diagnosis, setDiagnosis] = useState('')
   const [comment, setComment] = useState('')
   const [errors, setErrors] = useState<{ diagnosis?: string; comment?: string }>({})
@@ -52,10 +58,10 @@ export function TransitionDialog({
   }
 
   return createPortal(
-    <div className="dialog__backdrop">
+    <div className={`dialog__backdrop${closing ? ' dialog__backdrop--closing' : ''}`}>
       <div
         ref={ref}
-        className="dialog"
+        className={`dialog${closing ? ' dialog--closing' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -64,7 +70,7 @@ export function TransitionDialog({
       >
         <form onSubmit={handleSubmit} noValidate>
           <h2 id={titleId} className="dialog__title">
-            {transitionLabel(fromStatus, transition.toStatus)}
+            {actionLabel}
           </h2>
           <p className="dialog__sub">
             {STATUS_LABEL[fromStatus]} → {STATUS_LABEL[transition.toStatus]}
@@ -113,11 +119,15 @@ export function TransitionDialog({
             </p>
           )}
           <div className="dialog__actions">
-            <button type="button" className="dialog__btn" onClick={onCancel} disabled={submitting}>
-              Back
+            <button type="button" className="dialog__btn" onClick={requestClose} disabled={submitting}>
+              {isCancel ? 'Keep ticket' : 'Back'}
             </button>
-            <button type="submit" className="dialog__btn dialog__btn--primary" disabled={submitting}>
-              {submitting ? 'Saving…' : 'Confirm'}
+            <button
+              type="submit"
+              className={`dialog__btn ${isCancel ? 'dialog__btn--danger' : 'dialog__btn--primary'}`}
+              disabled={submitting}
+            >
+              {submitting ? 'Saving…' : actionLabel}
             </button>
           </div>
         </form>

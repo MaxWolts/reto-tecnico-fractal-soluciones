@@ -17,6 +17,12 @@ Built from the reference mockup, with UX additions: filters, ticket drawer with 
 
 ![Ticket drawer with diagnosis and history](docs/screens/ticket-drawer.jpg)
 
+![Board in dark mode](docs/screens/board-dark.png)
+
+The UI follows Apple's Human Interface Guidelines: 44 px hit targets, WCAG AA contrast, rem type scale, light and dark mode, motion that respects reduced-motion, and a content-first mobile layout.
+
+**UX next steps:** pressed (`:active`) states on all controls, distinct disabled vs. busy styles, column headers larger than card titles, a darker "High" priority dot, optimistic updates, and remaining hard-coded spacing moved to tokens.
+
 ## Features
 
 Core:
@@ -225,6 +231,12 @@ Construidas a partir del mockup de referencia, con mejoras de UX: filtros, panel
 ![Board](docs/screens/board.png)
 
 ![Ticket drawer with diagnosis and history](docs/screens/ticket-drawer.jpg)
+
+![Tablero en modo oscuro](docs/screens/board-dark.png)
+
+La interfaz sigue las Human Interface Guidelines de Apple: áreas táctiles de 44 px, contraste WCAG AA, escala tipográfica en rem, modo claro y oscuro, animaciones que respetan reduced-motion y un diseño móvil que prioriza el contenido.
+
+**Próximos pasos de UX:** estados presionados (`:active`) en todos los controles, estilos distintos para deshabilitado y procesando, títulos de columna más grandes que los de las tarjetas, un punto de prioridad "High" más oscuro, actualizaciones optimistas y llevar a tokens el espaciado que aún está fijo.
 
 ## Funcionalidades
 

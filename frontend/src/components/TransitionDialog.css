@@ -5,7 +5,8 @@
   display: grid;
   place-items: center;
   padding: var(--space-4);
-  background: rgba(18, 53, 91, 0.45);
+  background: var(--color-scrim);
+  animation: fade-in var(--motion-dur) ease-out;
 }
 
 .dialog {
@@ -16,11 +17,20 @@
   background: var(--color-surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-raised);
+  animation: scale-in var(--motion-dur) ease-out;
+}
+
+.dialog__backdrop--closing {
+  animation: fade-out var(--motion-dur) ease-in forwards;
+}
+
+.dialog--closing {
+  animation: scale-out var(--motion-dur) ease-in forwards;
 }
 
 .dialog__title {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--text-xl);
 }
 
 .dialog__sub {
@@ -36,13 +46,13 @@
 }
 
 .dialog__label {
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 600;
 }
 
 .dialog__input {
   width: 100%;
-  padding: 8px 10px;
+  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
@@ -55,7 +65,7 @@
 
 .dialog__error {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--color-danger);
 }
 
@@ -73,7 +83,7 @@
 }
 
 .dialog__btn {
-  padding: 8px 16px;
+  padding: 0 var(--space-4);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
@@ -90,6 +100,17 @@
 
 .dialog__btn--primary:hover:not(:disabled) {
   background: var(--color-accent-hover);
+}
+
+.dialog__btn--danger {
+  border-color: transparent;
+  background: var(--color-danger-solid);
+  color: var(--color-on-dark);
+  font-weight: 700;
+}
+
+.dialog__btn--danger:hover:not(:disabled) {
+  filter: brightness(0.92);
 }
 
 .dialog__btn:disabled {
