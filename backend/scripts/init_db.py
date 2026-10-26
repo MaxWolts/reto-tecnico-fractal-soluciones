@@ -9,6 +9,9 @@ variable is not set. Accepted forms:
 
     mysql://user:password@host:3306/dbname
     mysql+pymysql://user:password@host:3306/dbname
+    mysql://user:password@host:3306/dbname?ssl-mode=REQUIRED   (managed MySQL, TLS)
+
+For TLS with certificate checks set DB_SSL_CA_PATH (file) or DB_SSL_CA (PEM text).
 
 Applies, in order:
 
@@ -25,10 +28,12 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import ssl
 import sys
+import tempfile
 from collections.abc import Iterator
 from pathlib import Path
-from urllib.parse import unquote, urlsplit
+from urllib.parse import parse_qs, unquote, urlsplit
 
 import pymysql
 
@@ -80,6 +85,63 @@ def load_database_url(env_file: Path = ENV_FILE) -> str | None:
     return _read_env_file(env_file).get("DATABASE_URL", "").strip() or None
 
 
+_SSL_MODES = {"REQUIRED", "VERIFY_CA", "VERIFY_IDENTITY"}
+_ca_file_cache: dict[str, str] = {}
+_warned_unverified = False
+
+
+def _ssl_mode(query: str) -> str | None:
+    """Return the upper-cased ssl-mode from a URL query string, if any."""
+    values = parse_qs(query)
+    for key in ("ssl-mode", "ssl_mode"):
+        if values.get(key):
+            return values[key][-1].strip().upper()
+    return None
+
+
+def _ca_file() -> str | None:
+    """Return a CA file path from DB_SSL_CA_PATH, or from DB_SSL_CA (PEM text)."""
+    path = os.environ.get("DB_SSL_CA_PATH", "").strip()
+    if path:
+        return path
+    pem = os.environ.get("DB_SSL_CA", "").strip()
+    if not pem:
+        return None
+    if pem not in _ca_file_cache:
+        handle = tempfile.NamedTemporaryFile(
+            "w", suffix=".pem", prefix="db-ca-", delete=False, encoding="utf-8"
+        )
+        with handle:
+            handle.write(pem + "\n")
+        _ca_file_cache[pem] = handle.name
+    return _ca_file_cache[pem]
+
+
+def _ssl_context(mode: str | None) -> ssl.SSLContext | None:
+    """Build the TLS context for an ssl-mode, or None for a plain connection."""
+    global _warned_unverified
+    if mode not in _SSL_MODES:
+        return None
+    ca = _ca_file()
+    if ca:
+        ctx = ssl.create_default_context(cafile=ca)
+        ctx.verify_flags &= ~ssl.VERIFY_X509_STRICT
+        ctx.check_hostname = mode == "VERIFY_IDENTITY"
+        ctx.verify_mode = ssl.CERT_REQUIRED
+        return ctx
+    if not _warned_unverified:
+        _warned_unverified = True
+        print(
+            f"warning: ssl-mode={mode} without DB_SSL_CA/DB_SSL_CA_PATH: "
+            "TLS is on but the server is not verified",
+            file=sys.stderr,
+        )
+    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    return ctx
+
+
 def parse_database_url(url: str) -> dict[str, object]:
     """Convert a mysql:// or mysql+pymysql:// URL into pymysql.connect kwargs."""
     parts = urlsplit(url)
@@ -94,13 +156,17 @@ def parse_database_url(url: str) -> dict[str, object]:
         port = parts.port or 3306
     except ValueError as exc:
         raise InitDbError(f"DATABASE_URL has an invalid port: {exc}") from exc
-    return {
+    params: dict[str, object] = {
         "host": parts.hostname,
         "port": port,
         "user": unquote(parts.username or ""),
         "password": unquote(parts.password or ""),
         "database": database,
     }
+    ctx = _ssl_context(_ssl_mode(parts.query))
+    if ctx is not None:
+        params["ssl"] = ctx
+    return params
 
 
 # --------------------------------------------------------------------------- #
