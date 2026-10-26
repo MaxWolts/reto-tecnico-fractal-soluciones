@@ -2,10 +2,10 @@
 
 ```mermaid
 flowchart LR
-    B["Browser"] --> SPA["React SPA<br/>(Netlify)"]
+    B["Browser"] --> SPA["React SPA<br/>(Vercel static)"]
     SPA -->|"HTTPS JSON /api"| API
 
-    subgraph API["FastAPI (Render)"]
+    subgraph API["FastAPI (Vercel serverless)"]
         direction TB
         R["routes"] --> S["services"]
         S --> D["domain<br/>(state machine, exceptions)"]
@@ -16,7 +16,7 @@ flowchart LR
     SP -->|"PyMySQL"| DB[("MySQL 8<br/>(Aiven)")]
 ```
 
-Hosting: Netlify / Render / Aiven MySQL. The Railway config files are kept as an alternative ([deploy-railway.md](deploy-railway.md)).
+Hosting: Vercel (static) / Vercel (serverless FastAPI) / Aiven MySQL. The Railway config files are kept as an alternative ([deploy-railway.md](deploy-railway.md)).
 
 ## Layers
 

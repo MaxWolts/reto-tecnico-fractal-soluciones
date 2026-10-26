@@ -1,6 +1,6 @@
 # Maintenance Tickets
 
-Maintenance ticket workflow with an enforced state machine, a full per-ticket event history (Ticket 1-N History) and MySQL stored procedures that own every write. FastAPI backend with a strict routes / services / domain / repositories split, React + Vite + TypeScript frontend, deployed on Netlify, Render and Aiven MySQL (free tiers).
+Maintenance ticket workflow with an enforced state machine, a full per-ticket event history (Ticket 1-N History) and MySQL stored procedures that own every write. FastAPI backend with a strict routes / services / domain / repositories split, React + Vite + TypeScript frontend, deployed on Vercel (frontend and backend) and Aiven MySQL (free tiers).
 
 - Live demo: <frontend URL - TBD>
 - API docs: <backend URL>/docs - TBD
@@ -59,7 +59,7 @@ Request path: `routes` (HTTP and Pydantic only) -> `services` (use cases) -> `do
 │   ├── app/            api/, domain/, services/, repositories/, schemas/, config.py, db.py, main.py
 │   ├── scripts/        init_db.py
 │   ├── tests/          unit tests + integration/
-│   ├── pyproject.toml  pytest + ruff config
+│   ├── pyproject.toml  pytest + ruff config + Vercel entrypoint (tool.vercel)
 │   ├── requirements.txt, requirements-dev.txt
 │   └── railway.json
 ├── frontend/
@@ -78,7 +78,7 @@ Request path: `routes` (HTTP and Pydantic only) -> `services` (use cases) -> `do
 - **PyMySQL + stored procedures, no ORM**: transitions, locking and history writes live in SQL, so the rules hold for any client. Trade-off: logic is split between SQL and Python, and the transition table is mirrored in `state_machine.py`.
 - **MySQL 8**: transactions, `FOR UPDATE`, CHECK constraints, managed free offering on Aiven (TLS).
 - **React 19 + Vite + TypeScript, no UI kit**: small bundle and full control of the board/drawer UI. Trade-off: hand-written components and CSS.
-- **Netlify + Render + Aiven**: frontend, backend and MySQL on free tiers, configured by `netlify.toml` and `render.yaml`. Trade-off: the free Render service sleeps when idle (cold start ~50 s). Railway configs are kept as an alternative.
+- **Vercel + Aiven**: static frontend and serverless FastAPI backend on Vercel, MySQL on Aiven, all free tiers. The backend entrypoint is set by `tool.vercel` in `backend/pyproject.toml`. Trade-off: serverless cold starts and a new DB connection per request. Railway configs are kept as an alternative.
 
 ## Run locally
 
@@ -192,7 +192,7 @@ Codes: 404 `TICKET_NOT_FOUND`, `OPERATOR_NOT_FOUND`; 409 `CONCURRENCY_CONFLICT`;
 
 Full guide: [docs/deploy-free-tier.md](docs/deploy-free-tier.md).
 
-- Netlify (frontend, `netlify.toml`), Render (backend, `render.yaml`), Aiven for MySQL (free plan, TLS).
+- Vercel: two projects from this repo, backend (Root Directory `backend`, serverless FastAPI) and frontend (Root Directory `frontend`, static Vite). Aiven for MySQL (free plan, TLS).
 - Backend: `DATABASE_URL` with `?ssl-mode=REQUIRED`, `DB_SSL_CA` (PEM text) and `CORS_ORIGINS` = frontend origin. Frontend: build-time `VITE_API_URL` = backend URL.
 - Run `init_db.py` once, by hand, against the Aiven URI. It is deliberately not in any deploy command because it drops tables.
 - Why not Railway: new signups are paused after its Oct 21 2026 security incident. The Railway guide stays as an alternative: [docs/deploy-railway.md](docs/deploy-railway.md).
