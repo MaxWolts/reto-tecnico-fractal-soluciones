@@ -67,3 +67,9 @@ Smoke test: open the frontend site, check the ticket list loads, open a ticket, 
 - Where are the logs: backend project > Logs (Runtime Logs) in the Vercel dashboard.
 - Function time limit (10 s on the free plan) does not matter here: each request is a few quick queries.
 - First request after idle can be slower (serverless cold start). Retry.
+
+## Lessons from the first deploy
+
+- Vercel installs Python dependencies from `backend/pyproject.toml` when it exists, not from `requirements.txt`. Both lists are kept identical; `tests/test_dependencies.py` fails if they drift. Symptom when missing: `ModuleNotFoundError: No module named 'fastapi'` and `FUNCTION_INVOCATION_FAILED`.
+- Use the production domain (no hash, e.g. `reto-tecnico-fractal-soluciones.vercel.app`). Per-deployment URLs with a hash are behind Vercel Authentication and return 302.
+- Add env vars for the **Production** environment, then Redeploy. `VITE_API_URL` is baked in at build time; a missing value makes the frontend call `http://localhost:8000`.

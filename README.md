@@ -2,8 +2,8 @@
 
 Maintenance ticket workflow with an enforced state machine, a full per-ticket event history (Ticket 1-N History) and MySQL stored procedures that own every write. FastAPI backend with a strict routes / services / domain / repositories split, React + Vite + TypeScript frontend, deployed on Vercel (frontend and backend) and Aiven MySQL (free tiers).
 
-- Live demo: <frontend URL - TBD>
-- API docs: <backend URL>/docs - TBD
+- Live demo: https://reto-tecnico-fractal-soluciones.vercel.app
+- API docs: https://reto-tecnico-fractal-soluciones-38r.vercel.app/docs
 
 ## Screens
 
