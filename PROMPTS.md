@@ -1,8 +1,8 @@
 # AI Prompts
 
-**Tool:** Claude Code. One orchestrator model planned the work and handed each task to a smaller or larger model depending on difficulty.
+**Tool:** Claude Code. One orchestrator model planned the work and gave each task to a light, mid or strong model depending on difficulty.
 
-**My role:** I set the goals, chose the stack and the workflow, answered the options the AI gave me, and reviewed the results. The AI wrote most of the code and docs.
+**My role:** I set the goals, chose the stack, picked between the options the AI proposed, ran the checks that needed my accounts (database, GitHub, hosting) and reviewed the results. The AI wrote most of the code and docs.
 
 Contents: **Decisions** · **My prompts** · **Review** · **Appendix** (full subagent prompts, collapsed).
 
@@ -13,59 +13,102 @@ Contents: **Decisions** · **My prompts** · **Review** · **Appendix** (full su
 | # | Topic | Options I had | My choice |
 |---|-------|---------------|-----------|
 | 1 | Backend + frontend | AI suggested .NET 8 + Dapper + React | **Python (FastAPI) + React** |
-| 2 | Cloud | Railway, AWS or Azure (from the challenge) | **Railway** |
-| 3 | Database for development | MySQL on Railway · install MySQL locally · use an existing one | **Install MySQL 8 locally** |
-| 4 | Repo and deploy | AI creates them with CLIs · I create them myself | **I push and deploy myself; AI works only locally** |
-| 5 | Commit style | — | **Small commits per stage, gitmoji, short plain English** |
-| 6 | Scope | — | **Deliver in one day; quality over quantity; check consistency between artifacts** |
-| 7 | AI workflow | — | **Short answers; pick a model per task** |
-| 8 | Two extra safety checks (DB rules vs code test, lock history edits in DB) | Fix now · leave for later | **Leave for later, go to deploy** (listed as next steps) |
+| 2 | Database for development | MySQL on Railway · install locally · existing server | **MySQL 8 installed locally** |
+| 3 | Workflow | — | **One day; quality over quantity; consistency checks; small commits per stage** |
+| 4 | AI usage | — | **Short answers; the right model for each task** |
+| 5 | Railway setup | Dashboard · CLI · single combined service | **Dashboard with GitHub integration** |
+| 6 | Railway unavailable (new signups paused after its Oct 21 incident; Azure not possible for me) | Wait · AWS · free external services | **Free external services, justified in the README** |
+| 7 | Hosting | Aiven + Render + Netlify · Aiven + Vercel | **Aiven (MySQL) + Vercel (frontend and API)**: no cold start during the demo |
+| 8 | Two extra safety checks (DB rules vs code test, DB-level history lock) | Fix now · later | **Later** (listed as next steps) |
 
 ---
 
 ## 2. My prompts
 
-Originals were written in Spanish; spelling is cleaned up, meaning unchanged.
+Written in Spanish; edited for spelling and clarity, meaning unchanged.
+
+### Planning
 
 **1 · Understand the challenge**
-> "Es una prueba técnica que debo realizar y esa es la imagen de referencia del punto 3. ¿Qué sugerencias das para hacerla lo mejor posible?"
+> "Este es el enunciado de una prueba técnica y la imagen de referencia del punto 3. ¿Qué sugerencias das para hacerla lo mejor posible?"
 
-*This is a technical test and this is the reference image for point 3. What do you suggest to do it as well as possible?* (challenge PDF + mockup attached)
+*Here is the challenge and the reference mockup. What do you suggest to do it as well as possible?*
 
 **2 · What the committee expects**
-> "Teniendo en cuenta que se permite el uso de IA, ¿qué suelen esperar?"
+> "Si se permite usar IA, ¿qué suele esperar el comité?"
 
-*Since AI is allowed, what do they usually expect?*
+*If AI is allowed, what does the committee usually expect?*
 
-**3 · How to build it**
-> "Teniendo eso en cuenta, ¿cómo realizarías el proyecto?"
+**3 · Approach**
+> "Con eso en cuenta, ¿cómo realizarías el proyecto?"
 
-*With that in mind, how would you build the project?*
-→ The AI proposed .NET + Dapper. I changed it in the next prompt.
+*With that in mind, how would you build it?*
+→ The AI proposed .NET + Dapper. I chose Python in the next prompt.
 
-**4 · Start the project**
-> "Realiza el proyecto con Python y React; usaremos Railway. Prepara los prompts para colocarlos en PROMPTS.md. Se entregará todo en un día. Mantengamos el criterio por encima de la cantidad, con verificación de inconsistencias y un historial de commits progresivo. Respuestas siempre breves, y usa el modelo adecuado según la complejidad de cada tarea: uno ligero para tareas mecánicas, uno intermedio para código típico y el más potente para diseño complejo y revisión."
+### Build
 
-*Build it with Python and React on Railway. Prepare the prompts for PROMPTS.md. Delivery in one day. Quality over quantity, check inconsistencies, progressive commit history. Always keep answers short, and use the right model for each task: a light one for mechanical work, a mid one for typical code, the strongest for complex design and review.*
+**4 · Start**
+> "Realiza el proyecto con Python y React; desplegaremos en Railway. Se entrega en un día. Prioriza la calidad sobre la cantidad, verifica inconsistencias entre los artefactos y mantén un historial de commits progresivo. Prepara los prompts para PROMPTS.md. Respuestas breves, y usa el modelo adecuado según la complejidad de cada tarea: uno ligero para tareas mecánicas, uno intermedio para código típico y el más potente para diseño complejo y revisión."
 
-My answers to the options:
+*Build it with Python and React, deploy on Railway, deliver in one day. Quality over quantity, check consistency between artifacts, progressive commits. Prepare PROMPTS.md. Short answers; the right model per task.*
+
+My answers to its options:
 - Database: install MySQL locally.
-- Commits: "Commits simples por etapas, con gitmoji, sin comentarios extensos, que parezcan de una persona con un inglés simple. Trabaja de manera local."
+- Commits: "Commits pequeños por etapa, con gitmoji y mensajes cortos en inglés sencillo. Trabaja solo en local."
 
-**5–6 · Local database ready**
-> "Listo, la instalación." · "backend/.env creado con DATABASE_URL y TEST_DATABASE_URL. Continúa."
+**5 · Run against the real database**
+> "MySQL instalado y backend/.env creado con DATABASE_URL y TEST_DATABASE_URL. Continúa."
 
-*MySQL installed. `.env` created. Continue.*
-→ First real run of the stored procedures. 88 tests pass and the full flow works in the browser.
+*MySQL is installed and `.env` is ready. Continue.*
+→ First real run of the stored procedures: 88 tests pass and the full flow works in the browser.
+
+### Deploy
+
+**6 · Choose how to deploy**
+> "Repo creado en GitHub. Haz el push y dame las opciones para desplegar en Railway con pros y contras; yo elijo."
+
+*Push the repo and give me the Railway deploy options with pros and cons; I'll choose.*
+→ Dashboard, CLI or a single combined service. I chose the dashboard: no code changes and auto-deploy on push.
+
+**7 · Platform outage**
+> "Railway está caído. ¿Qué alternativas gratuitas hay dentro de lo permitido?" · "Revisa status.railway.com para estimar cuánto puede demorar."
+
+*Railway is down. What free options are allowed? Check the status page to estimate how long it may take.*
+→ New signups were paused after a security incident, with no date. AWS and Azure need a card and verification.
+
+**8 · Free external services**
+> "No puedo usar Railway ni Azure. ¿Qué servicios gratuitos puedo usar para publicar la demo? Lo justificaré luego."
+
+*I can't use Railway or Azure. Which free services can host the demo? I'll justify it later.*
+→ Options per layer. I discarded TiDB because it has no stored procedures and chose Aiven for MySQL.
+
+**9 · Simplify hosting**
+> "¿Vercel no evitaría tener que usar Render y Netlify?"
+
+*Wouldn't Vercel replace both Render and Netlify?*
+→ Yes: one platform for frontend and API, and no 50 s cold start. I chose Aiven + Vercel.
+
+**10 · Debug the deployed API**
+> "El backend responde FUNCTION_INVOCATION_FAILED. Estos son los logs: ModuleNotFoundError: No module named 'fastapi'."
+
+*The API fails with these logs.*
+→ Root cause: Vercel reads dependencies from `pyproject.toml`, not `requirements.txt`. Fixed, plus a test that keeps both lists in sync.
+
+**11 · Debug the deployed frontend**
+> "En el frontend salen errores ERR_CONNECTION_REFUSED hacia localhost:8000."
+
+*The frontend calls localhost:8000.*
+→ `VITE_API_URL` is set at build time, and I was opening a protected preview URL. Fixed with the production domain, the variable and the backend CORS origin.
 
 ---
 
 ## Review
 
-Each task went to the right model (light for setup, mid for code, strongest for SQL and review). A final review checked docs, SQL, API and UI against each other. Bugs it caught and fixed:
+Each task went to the right model: light for setup, mid for code, strongest for SQL and review. A final review checked docs, SQL, API and UI against each other. Bugs caught and fixed:
 - A stale version returned 422 instead of 409.
 - Closed tickets could still be reassigned.
 - Integration tests could wipe the production database.
+- The deployed API could not find its dependencies (found from the logs).
 
 ---
 
