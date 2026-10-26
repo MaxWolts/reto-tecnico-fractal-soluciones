@@ -2,10 +2,10 @@
 
 ```mermaid
 flowchart LR
-    B["Browser"] --> SPA["React SPA<br/>(Railway static)"]
+    B["Browser"] --> SPA["React SPA<br/>(Netlify)"]
     SPA -->|"HTTPS JSON /api"| API
 
-    subgraph API["FastAPI (Railway)"]
+    subgraph API["FastAPI (Render)"]
         direction TB
         R["routes"] --> S["services"]
         S --> D["domain<br/>(state machine, exceptions)"]
@@ -13,8 +13,10 @@ flowchart LR
         RE --> SP["stored procedure calls"]
     end
 
-    SP -->|"PyMySQL"| DB[("MySQL 8<br/>(Railway)")]
+    SP -->|"PyMySQL"| DB[("MySQL 8<br/>(Aiven)")]
 ```
+
+Hosting: Netlify / Render / Aiven MySQL. The Railway config files are kept as an alternative ([deploy-railway.md](deploy-railway.md)).
 
 ## Layers
 
@@ -28,7 +30,8 @@ flowchart LR
 
 Environment variables, read by `config.py` (pydantic-settings):
 
-- `DATABASE_URL`: also accepts the Railway `mysql://` form.
+- `DATABASE_URL`: accepts `mysql://` and `mysql+pymysql://`; add `?ssl-mode=REQUIRED` (or `VERIFY_CA` / `VERIFY_IDENTITY`) for TLS.
+- `DB_SSL_CA` (PEM text) or `DB_SSL_CA_PATH` (file): CA used to verify the MySQL server when TLS is on.
 - `CORS_ORIGINS`
 - `LOG_LEVEL`
 

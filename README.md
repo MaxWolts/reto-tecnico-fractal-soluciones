@@ -1,6 +1,6 @@
 # Maintenance Tickets
 
-Maintenance ticket workflow with an enforced state machine, a full per-ticket event history (Ticket 1-N History) and MySQL stored procedures that own every write. FastAPI backend with a strict routes / services / domain / repositories split, React + Vite + TypeScript frontend, deployed on Railway.
+Maintenance ticket workflow with an enforced state machine, a full per-ticket event history (Ticket 1-N History) and MySQL stored procedures that own every write. FastAPI backend with a strict routes / services / domain / repositories split, React + Vite + TypeScript frontend, deployed on Netlify, Render and Aiven MySQL (free tiers).
 
 - Live demo: <frontend URL - TBD>
 - API docs: <backend URL>/docs - TBD
@@ -67,7 +67,7 @@ Request path: `routes` (HTTP and Pydantic only) -> `services` (use cases) -> `do
 │   ├── package.json
 │   └── railway.json
 ├── database/           01_schema.sql, 02_stored_procedures.sql, 03_seed.sql
-├── docs/               architecture, state-machine, sequence, erd, deploy-railway
+├── docs/               architecture, state-machine, sequence, erd, deploy-free-tier, deploy-railway
 ├── .env.example        backend and frontend variables
 └── PROMPTS.md
 ```
@@ -76,9 +76,9 @@ Request path: `routes` (HTTP and Pydantic only) -> `services` (use cases) -> `do
 
 - **FastAPI + Pydantic v2**: typed request/response models and OpenAPI docs at `/docs`. Endpoints are synchronous: fine for this load, not tuned for high concurrency.
 - **PyMySQL + stored procedures, no ORM**: transitions, locking and history writes live in SQL, so the rules hold for any client. Trade-off: logic is split between SQL and Python, and the transition table is mirrored in `state_machine.py`.
-- **MySQL 8**: transactions, `FOR UPDATE`, CHECK constraints, managed offering on Railway.
+- **MySQL 8**: transactions, `FOR UPDATE`, CHECK constraints, managed free offering on Aiven (TLS).
 - **React 19 + Vite + TypeScript, no UI kit**: small bundle and full control of the board/drawer UI. Trade-off: hand-written components and CSS.
-- **Railway**: backend, frontend and MySQL in one project, configured by `railway.json` files. Trade-off: platform lock-in for config, though the app is plain env-var driven.
+- **Netlify + Render + Aiven**: frontend, backend and MySQL on free tiers, configured by `netlify.toml` and `render.yaml`. Trade-off: the free Render service sleeps when idle (cold start ~50 s). Railway configs are kept as an alternative.
 
 ## Run locally
 
@@ -190,11 +190,12 @@ Codes: 404 `TICKET_NOT_FOUND`, `OPERATOR_NOT_FOUND`; 409 `CONCURRENCY_CONFLICT`;
 
 ## Deployment
 
-Full guide: [docs/deploy-railway.md](docs/deploy-railway.md).
+Full guide: [docs/deploy-free-tier.md](docs/deploy-free-tier.md).
 
-- One Railway project, three services: MySQL, backend (root `backend/`), frontend (root `frontend/`).
-- Backend: `DATABASE_URL=${{MySQL.MYSQL_URL}}` and `CORS_ORIGINS` = frontend origin. Frontend: build-time `VITE_API_URL` = backend URL.
-- Run `init_db.py` once, by hand, against the public MySQL URL. It is deliberately not in any deploy command because it drops tables.
+- Netlify (frontend, `netlify.toml`), Render (backend, `render.yaml`), Aiven for MySQL (free plan, TLS).
+- Backend: `DATABASE_URL` with `?ssl-mode=REQUIRED`, `DB_SSL_CA` (PEM text) and `CORS_ORIGINS` = frontend origin. Frontend: build-time `VITE_API_URL` = backend URL.
+- Run `init_db.py` once, by hand, against the Aiven URI. It is deliberately not in any deploy command because it drops tables.
+- Why not Railway: new signups are paused after its Oct 21 2026 security incident. The Railway guide stays as an alternative: [docs/deploy-railway.md](docs/deploy-railway.md).
 
 ## AI usage
 
