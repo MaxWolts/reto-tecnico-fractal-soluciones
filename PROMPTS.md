@@ -1,5 +1,9 @@
 # AI Prompts
 
+**Language / Idioma:** [English](#english) · [Español](#español)
+
+<a id="english"></a>
+
 **Tool:** Claude Code. One orchestrator model planned the work and gave each task to a light, mid or strong model depending on difficulty.
 
 **My role:** I set the goals, chose the stack, picked between the options the AI proposed, ran the checks that needed my accounts (database, GitHub, hosting) and reviewed the results. The AI wrote most of the code and docs.
@@ -94,12 +98,6 @@ My answers to its options:
 *The API fails with these logs.*
 → Root cause: Vercel reads dependencies from `pyproject.toml`, not `requirements.txt`. Fixed, plus a test that keeps both lists in sync.
 
-**11 · Debug the deployed frontend**
-> "En el frontend salen errores ERR_CONNECTION_REFUSED hacia localhost:8000."
-
-*The frontend calls localhost:8000.*
-→ `VITE_API_URL` is set at build time, and I was opening a protected preview URL. Fixed with the production domain, the variable and the backend CORS origin.
-
 ---
 
 ## Review
@@ -109,6 +107,109 @@ Each task went to the right model: light for setup, mid for code, strongest for 
 - Closed tickets could still be reassigned.
 - Integration tests could wipe the production database.
 - The deployed API could not find its dependencies (found from the logs).
+
+---
+
+---
+
+<a id="español"></a>
+
+# Prompts de IA — Español
+
+**Herramienta:** Claude Code. Un modelo orquestador planificó el trabajo y asignó cada tarea a un modelo ligero, intermedio o potente según la dificultad.
+
+**Mi rol:** Definí los objetivos, elegí el stack, escogí entre las opciones que propuso la IA, ejecuté las verificaciones que requerían mis cuentas (base de datos, GitHub, hosting) y revisé los resultados. La IA escribió la mayor parte del código y de la documentación.
+
+Contenido: **Decisiones** · **Mis prompts** · **Revisión** · **Anexo** (prompts completos de los subagentes, en inglés).
+
+---
+
+## 1. Decisiones
+
+| # | Tema | Opciones que tenía | Mi elección |
+|---|------|--------------------|-------------|
+| 1 | Backend + frontend | La IA sugirió .NET 8 + Dapper + React | **Python (FastAPI) + React** |
+| 2 | Base de datos para desarrollo | MySQL en Railway · instalar local · servidor existente | **MySQL 8 instalado localmente** |
+| 3 | Flujo de trabajo | — | **Un día; calidad sobre cantidad; verificaciones de consistencia; commits pequeños por etapa** |
+| 4 | Uso de IA | — | **Respuestas breves; el modelo adecuado para cada tarea** |
+| 5 | Configuración de Railway | Dashboard · CLI · un único servicio combinado | **Dashboard con integración de GitHub** |
+| 6 | Railway no disponible (registros nuevos pausados tras su incidente del 21 de oct; Azure no es posible para mí) | Esperar · AWS · servicios externos gratuitos | **Servicios externos gratuitos, justificados en el README** |
+| 7 | Hosting | Aiven + Render + Netlify · Aiven + Vercel | **Aiven (MySQL) + Vercel (frontend y API)**: sin arranque en frío durante la demo |
+| 8 | Dos verificaciones de seguridad extra (reglas de la BD vs prueba de código, bloqueo del historial a nivel de BD) | Corregir ahora · después | **Después** (listadas como próximos pasos) |
+
+---
+
+## 2. Mis prompts
+
+Escritos en español; editados por ortografía y claridad, sin cambiar el sentido.
+
+### Planificación
+
+**1 · Entender el reto**
+> "Este es el enunciado de una prueba técnica y la imagen de referencia del punto 3. ¿Qué sugerencias das para hacerla lo mejor posible?"
+
+**2 · Qué espera el comité**
+> "Si se permite usar IA, ¿qué suele esperar el comité?"
+
+**3 · Enfoque**
+> "Con eso en cuenta, ¿cómo realizarías el proyecto?"
+
+→ La IA propuso .NET + Dapper. Elegí Python en el siguiente prompt.
+
+### Construcción
+
+**4 · Inicio**
+> "Realiza el proyecto con Python y React; desplegaremos en Railway. Se entrega en un día. Prioriza la calidad sobre la cantidad, verifica inconsistencias entre los artefactos y mantén un historial de commits progresivo. Prepara los prompts para PROMPTS.md. Respuestas breves, y usa el modelo adecuado según la complejidad de cada tarea: uno ligero para tareas mecánicas, uno intermedio para código típico y el más potente para diseño complejo y revisión."
+
+Mis respuestas a sus opciones:
+- Base de datos: instalar MySQL localmente.
+- Commits: "Commits pequeños por etapa, con gitmoji y mensajes cortos en inglés sencillo. Trabaja solo en local."
+
+**5 · Ejecutar contra la base de datos real**
+> "MySQL instalado y backend/.env creado con DATABASE_URL y TEST_DATABASE_URL. Continúa."
+
+→ Primera ejecución real de los procedimientos almacenados: 88 pruebas pasan y el flujo completo funciona en el navegador.
+
+### Despliegue
+
+**6 · Elegir cómo desplegar**
+> "Repo creado en GitHub. Haz el push y dame las opciones para desplegar en Railway con pros y contras; yo elijo."
+
+→ Dashboard, CLI o un único servicio combinado. Elegí el dashboard: sin cambios de código y despliegue automático con cada push.
+
+**7 · Caída de la plataforma**
+> "Railway está caído. ¿Qué alternativas gratuitas hay dentro de lo permitido?" · "Revisa status.railway.com para estimar cuánto puede demorar."
+
+→ Los registros nuevos se pausaron tras un incidente de seguridad, sin fecha. AWS y Azure requieren tarjeta y verificación.
+
+**8 · Servicios externos gratuitos**
+> "No puedo usar Railway ni Azure. ¿Qué servicios gratuitos puedo usar para publicar la demo? Lo justificaré luego."
+
+→ Opciones por capa. Descarté TiDB porque no tiene procedimientos almacenados y elegí Aiven for MySQL.
+
+**9 · Simplificar el hosting**
+> "¿Vercel no evitaría tener que usar Render y Netlify?"
+
+→ Sí: una sola plataforma para frontend y API, y sin arranque en frío de 50 s. Elegí Aiven + Vercel.
+
+**10 · Depurar la API desplegada**
+> "El backend responde FUNCTION_INVOCATION_FAILED. Estos son los logs: ModuleNotFoundError: No module named 'fastapi'."
+
+→ Causa raíz: Vercel lee las dependencias de `pyproject.toml`, no de `requirements.txt`. Corregido, más una prueba que mantiene ambas listas sincronizadas.
+
+---
+
+## Revisión
+
+Cada tarea fue al modelo adecuado: ligero para la configuración, intermedio para el código, el más potente para SQL y revisión. Una revisión final contrastó documentación, SQL, API y UI entre sí. Errores detectados y corregidos:
+- Una versión obsoleta devolvía 422 en lugar de 409.
+- Los tickets cerrados aún podían reasignarse.
+- Las pruebas de integración podían borrar la base de datos de producción.
+- La API desplegada no encontraba sus dependencias (detectado en los logs).
+
+---
+
+Los prompts completos enviados a los subagentes están al final, en inglés: [Appendix](#appendix--full-subagent-prompts).
 
 ---
 
