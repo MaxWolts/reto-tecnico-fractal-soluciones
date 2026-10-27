@@ -19,11 +19,12 @@ Contents: **Decisions** · **My prompts** · **Review** · **Appendix** (full su
 | 1 | Backend + frontend | AI suggested .NET 8 + Dapper + React | **Python (FastAPI) + React** |
 | 2 | Database for development | MySQL on Railway · install locally · existing server | **MySQL 8 installed locally** |
 | 3 | Workflow | — | **One day; quality over quantity; consistency checks; small commits per stage** |
-| 4 | AI usage | — | **Short answers; the right model for each task** |
+| 4 | AI usage | — | **Terse answers (caveman mode) to save tokens and reading time; light model for mechanical tasks, mid for typical code, strongest for design and review; a fresh subagent per task; subagent reports answer-first, one line per finding, exact limits** |
 | 5 | Railway setup | Dashboard · CLI · single combined service | **Dashboard with GitHub integration** |
 | 6 | Railway unavailable (new signups paused after its Oct 21 incident; Azure not possible for me) | Wait · AWS · free external services | **Free external services, justified in the README** |
 | 7 | Hosting | Aiven + Render + Netlify · Aiven + Vercel | **Aiven (MySQL) + Vercel (frontend and API)**: no cold start during the demo |
 | 8 | Two extra safety checks (DB rules vs code test, DB-level history lock) | Fix now · later | **Later** (listed as next steps) |
+| 9 | UI review against Apple HIG (21 findings) | Apply all · only high · high + key medium | **High + key medium** (11 fixes, one commit); the rest listed as UX next steps |
 
 ---
 
@@ -33,25 +34,15 @@ Written in Spanish; edited for spelling and clarity, meaning unchanged.
 
 ### Planning
 
-**1 · Understand the challenge**
-> "Este es el enunciado de una prueba técnica y la imagen de referencia del punto 3. ¿Qué sugerencias das para hacerla lo mejor posible?"
+**1 · Understand the challenge and propose an approach**
+> "Este es el enunciado de una prueba técnica y la imagen de referencia del punto 3. ¿Qué sugerencias das para hacerla lo mejor posible y cómo realizarías el proyecto?"
 
-*Here is the challenge and the reference mockup. What do you suggest to do it as well as possible?*
-
-**2 · What the committee expects**
-> "Si se permite usar IA, ¿qué suele esperar el comité?"
-
-*If AI is allowed, what does the committee usually expect?*
-
-**3 · Approach**
-> "Con eso en cuenta, ¿cómo realizarías el proyecto?"
-
-*With that in mind, how would you build it?*
-→ The AI proposed .NET + Dapper. I chose Python in the next prompt.
+*Here is the challenge and the reference mockup. What do you suggest, and how would you build it?*
+→ The AI proposed .NET + Dapper and a 3-layer validation design. I kept the design and chose Python in the next prompt.
 
 ### Build
 
-**4 · Start**
+**2 · Start**
 > "Realiza el proyecto con Python y React; desplegaremos en Railway. Se entrega en un día. Prioriza la calidad sobre la cantidad, verifica inconsistencias entre los artefactos y mantén un historial de commits progresivo. Prepara los prompts para PROMPTS.md. Respuestas breves, y usa el modelo adecuado según la complejidad de cada tarea: uno ligero para tareas mecánicas, uno intermedio para código típico y el más potente para diseño complejo y revisión."
 
 *Build it with Python and React, deploy on Railway, deliver in one day. Quality over quantity, check consistency between artifacts, progressive commits. Prepare PROMPTS.md. Short answers; the right model per task.*
@@ -60,7 +51,7 @@ My answers to its options:
 - Database: install MySQL locally.
 - Commits: "Commits pequeños por etapa, con gitmoji y mensajes cortos en inglés sencillo. Trabaja solo en local."
 
-**5 · Run against the real database**
+**3 · Run against the real database**
 > "MySQL instalado y backend/.env creado con DATABASE_URL y TEST_DATABASE_URL. Continúa."
 
 *MySQL is installed and `.env` is ready. Continue.*
@@ -68,35 +59,55 @@ My answers to its options:
 
 ### Deploy
 
-**6 · Choose how to deploy**
+**4 · Choose how to deploy**
 > "Repo creado en GitHub. Haz el push y dame las opciones para desplegar en Railway con pros y contras; yo elijo."
 
 *Push the repo and give me the Railway deploy options with pros and cons; I'll choose.*
 → Dashboard, CLI or a single combined service. I chose the dashboard: no code changes and auto-deploy on push.
 
-**7 · Platform outage**
+**5 · Platform outage**
 > "Railway está caído. ¿Qué alternativas gratuitas hay dentro de lo permitido?" · "Revisa status.railway.com para estimar cuánto puede demorar."
 
 *Railway is down. What free options are allowed? Check the status page to estimate how long it may take.*
 → New signups were paused after a security incident, with no date. AWS and Azure need a card and verification.
 
-**8 · Free external services**
+**6 · Free external services**
 > "No puedo usar Railway ni Azure. ¿Qué servicios gratuitos puedo usar para publicar la demo? Lo justificaré luego."
 
 *I can't use Railway or Azure. Which free services can host the demo? I'll justify it later.*
 → Options per layer. I discarded TiDB because it has no stored procedures and chose Aiven for MySQL.
 
-**9 · Simplify hosting**
+**7 · Simplify hosting**
 > "¿Vercel no evitaría tener que usar Render y Netlify?"
 
 *Wouldn't Vercel replace both Render and Netlify?*
 → Yes: one platform for frontend and API, and no 50 s cold start. I chose Aiven + Vercel.
 
-**10 · Debug the deployed API**
+**8 · Debug the deployed API**
 > "El backend responde FUNCTION_INVOCATION_FAILED. Estos son los logs: ModuleNotFoundError: No module named 'fastapi'."
 
 *The API fails with these logs.*
 → Root cause: Vercel reads dependencies from `pyproject.toml`, not `requirements.txt`. Fixed, plus a test that keeps both lists in sync.
+
+### UI review
+
+**9 · Pick a review tool**
+> "Haremos una revisión del frontend. ¿Qué plugin recomiendas para mejorarlo según las guías de diseño de Apple?"
+
+*Which plugin do you recommend to review the frontend against Apple's design guidelines?*
+→ No plugin covers Apple HIG directly. I used a UX audit approach: real measurements in the browser plus a code review.
+
+**10 · Audit, no changes yet**
+> "Revisa el frontend según las Human Interface Guidelines de Apple: claridad, deferencia, profundidad, jerarquía, áreas táctiles de 44 pt, tipografía, espaciado y feedback. Dame los hallazgos priorizados, sin corregir todavía."
+
+*Review the frontend against Apple HIG and give me prioritized findings, without fixing anything yet.*
+→ 21 findings with evidence. Examples: 16 of 22 controls under 44 px, a focus ring at 1.93:1 contrast, muted text at 3.54:1, error toasts that disappear, and the form above the board on mobile.
+
+**11 · Choose what to fix**
+> "Aplica los altos (1-7) y los medios 8, 9, 10 y 13. Deja el resto como next steps. Un solo commit."
+
+*Apply the high ones and four medium ones; list the rest as next steps; one commit.*
+→ 44 px targets, AA contrast, dark mode, rem type scale, mobile bottom sheet, clearer destructive dialog, motion with reduced-motion support. Checked in the browser on desktop, mobile and dark mode.
 
 ---
 
@@ -107,6 +118,7 @@ Each task went to the right model: light for setup, mid for code, strongest for 
 - Closed tickets could still be reassigned.
 - Integration tests could wipe the production database.
 - The deployed API could not find its dependencies (found from the logs).
+- The UI had small hit targets and low-contrast text (found by measuring in the browser).
 
 ---
 
@@ -131,11 +143,12 @@ Contenido: **Decisiones** · **Mis prompts** · **Revisión** · **Anexo** (prom
 | 1 | Backend + frontend | La IA sugirió .NET 8 + Dapper + React | **Python (FastAPI) + React** |
 | 2 | Base de datos para desarrollo | MySQL en Railway · instalar local · servidor existente | **MySQL 8 instalado localmente** |
 | 3 | Flujo de trabajo | — | **Un día; calidad sobre cantidad; verificaciones de consistencia; commits pequeños por etapa** |
-| 4 | Uso de IA | — | **Respuestas breves; el modelo adecuado para cada tarea** |
+| 4 | Uso de IA | — | **Respuestas breves (modo caveman) para ahorrar tokens y tiempo de lectura; modelo ligero para tareas mecánicas, intermedio para código típico y el más potente para diseño y revisión; un subagente nuevo por tarea; informes con la respuesta primero, una línea por hallazgo y límites exactos** |
 | 5 | Configuración de Railway | Dashboard · CLI · un único servicio combinado | **Dashboard con integración de GitHub** |
 | 6 | Railway no disponible (registros nuevos pausados tras su incidente del 21 de oct; Azure no es posible para mí) | Esperar · AWS · servicios externos gratuitos | **Servicios externos gratuitos, justificados en el README** |
 | 7 | Hosting | Aiven + Render + Netlify · Aiven + Vercel | **Aiven (MySQL) + Vercel (frontend y API)**: sin arranque en frío durante la demo |
 | 8 | Dos verificaciones de seguridad extra (reglas de la BD vs prueba de código, bloqueo del historial a nivel de BD) | Corregir ahora · después | **Después** (listadas como próximos pasos) |
+| 9 | Revisión de la interfaz con las HIG de Apple (21 hallazgos) | Aplicar todo · solo altos · altos + medios clave | **Altos + medios clave** (11 mejoras, un commit); el resto como próximos pasos de UX |
 
 ---
 
@@ -145,57 +158,68 @@ Escritos en español; editados por ortografía y claridad, sin cambiar el sentid
 
 ### Planificación
 
-**1 · Entender el reto**
-> "Este es el enunciado de una prueba técnica y la imagen de referencia del punto 3. ¿Qué sugerencias das para hacerla lo mejor posible?"
+**1 · Entender el reto y proponer un enfoque**
+> "Este es el enunciado de una prueba técnica y la imagen de referencia del punto 3. ¿Qué sugerencias das para hacerla lo mejor posible y cómo realizarías el proyecto?"
 
-**2 · Qué espera el comité**
-> "Si se permite usar IA, ¿qué suele esperar el comité?"
-
-**3 · Enfoque**
-> "Con eso en cuenta, ¿cómo realizarías el proyecto?"
-
-→ La IA propuso .NET + Dapper. Elegí Python en el siguiente prompt.
+→ La IA propuso .NET + Dapper y un diseño de validación en 3 capas. Mantuve el diseño y elegí Python en el siguiente prompt.
 
 ### Construcción
 
-**4 · Inicio**
+**2 · Inicio**
 > "Realiza el proyecto con Python y React; desplegaremos en Railway. Se entrega en un día. Prioriza la calidad sobre la cantidad, verifica inconsistencias entre los artefactos y mantén un historial de commits progresivo. Prepara los prompts para PROMPTS.md. Respuestas breves, y usa el modelo adecuado según la complejidad de cada tarea: uno ligero para tareas mecánicas, uno intermedio para código típico y el más potente para diseño complejo y revisión."
 
 Mis respuestas a sus opciones:
 - Base de datos: instalar MySQL localmente.
 - Commits: "Commits pequeños por etapa, con gitmoji y mensajes cortos en inglés sencillo. Trabaja solo en local."
 
-**5 · Ejecutar contra la base de datos real**
+**3 · Ejecutar contra la base de datos real**
 > "MySQL instalado y backend/.env creado con DATABASE_URL y TEST_DATABASE_URL. Continúa."
 
 → Primera ejecución real de los procedimientos almacenados: 88 pruebas pasan y el flujo completo funciona en el navegador.
 
 ### Despliegue
 
-**6 · Elegir cómo desplegar**
+**4 · Elegir cómo desplegar**
 > "Repo creado en GitHub. Haz el push y dame las opciones para desplegar en Railway con pros y contras; yo elijo."
 
 → Dashboard, CLI o un único servicio combinado. Elegí el dashboard: sin cambios de código y despliegue automático con cada push.
 
-**7 · Caída de la plataforma**
+**5 · Caída de la plataforma**
 > "Railway está caído. ¿Qué alternativas gratuitas hay dentro de lo permitido?" · "Revisa status.railway.com para estimar cuánto puede demorar."
 
 → Los registros nuevos se pausaron tras un incidente de seguridad, sin fecha. AWS y Azure requieren tarjeta y verificación.
 
-**8 · Servicios externos gratuitos**
+**6 · Servicios externos gratuitos**
 > "No puedo usar Railway ni Azure. ¿Qué servicios gratuitos puedo usar para publicar la demo? Lo justificaré luego."
 
 → Opciones por capa. Descarté TiDB porque no tiene procedimientos almacenados y elegí Aiven for MySQL.
 
-**9 · Simplificar el hosting**
+**7 · Simplificar el hosting**
 > "¿Vercel no evitaría tener que usar Render y Netlify?"
 
 → Sí: una sola plataforma para frontend y API, y sin arranque en frío de 50 s. Elegí Aiven + Vercel.
 
-**10 · Depurar la API desplegada**
+**8 · Depurar la API desplegada**
 > "El backend responde FUNCTION_INVOCATION_FAILED. Estos son los logs: ModuleNotFoundError: No module named 'fastapi'."
 
 → Causa raíz: Vercel lee las dependencias de `pyproject.toml`, no de `requirements.txt`. Corregido, más una prueba que mantiene ambas listas sincronizadas.
+
+### Revisión de la interfaz
+
+**9 · Elegir herramienta de revisión**
+> "Haremos una revisión del frontend. ¿Qué plugin recomiendas para mejorarlo según las guías de diseño de Apple?"
+
+→ Ningún plugin cubre las HIG de Apple directamente. Usé un enfoque de auditoría UX: mediciones reales en el navegador más una revisión del código.
+
+**10 · Auditar, sin cambios todavía**
+> "Revisa el frontend según las Human Interface Guidelines de Apple: claridad, deferencia, profundidad, jerarquía, áreas táctiles de 44 pt, tipografía, espaciado y feedback. Dame los hallazgos priorizados, sin corregir todavía."
+
+→ 21 hallazgos con evidencia. Por ejemplo: 16 de 22 controles bajo 44 px, anillo de foco con contraste 1.93:1, texto secundario a 3.54:1, toasts de error que desaparecen y el formulario antes del tablero en móvil.
+
+**11 · Elegir qué corregir**
+> "Aplica los altos (1-7) y los medios 8, 9, 10 y 13. Deja el resto como próximos pasos. Un solo commit."
+
+→ Áreas táctiles de 44 px, contraste AA, modo oscuro, escala tipográfica en rem, hoja inferior en móvil, diálogo destructivo más claro y animaciones que respetan reduced-motion. Verificado en el navegador en escritorio, móvil y modo oscuro.
 
 ---
 
@@ -206,6 +230,7 @@ Cada tarea fue al modelo adecuado: ligero para la configuración, intermedio par
 - Los tickets cerrados aún podían reasignarse.
 - Las pruebas de integración podían borrar la base de datos de producción.
 - La API desplegada no encontraba sus dependencias (detectado en los logs).
+- La interfaz tenía áreas táctiles pequeñas y texto con poco contraste (detectado midiendo en el navegador).
 
 ---
 
