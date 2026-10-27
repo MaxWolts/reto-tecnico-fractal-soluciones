@@ -122,6 +122,20 @@ My answers to its options:
 *Why does the toggle cycle through 3 options? Make it two states.*
 → It had System/Light/Dark, and on a dark OS "System" and "Dark" looked the same. Changed to Light ↔ Dark, starting from the system preference.
 
+### Input validation
+
+**14 · Test invalid input, no changes yet**
+> "Verifica el ingreso de datos inválidos en la API y la UI: fechas fuera de rango (año 1111, 9999, 5 dígitos), `from` > `to`, textos vacíos, solo espacios, demasiado largos, emojis, NUL y HTML. También ids imposibles, enums y versiones inválidas, y acciones repetidas. Usa la DB local, nunca producción. Dame los hallazgos separados en errores 500, corrupción y UX, sin corregir todavía."
+
+*Test invalid input in the API and the UI against the local DB, and give me the findings split into 500s, corruption and UX, without fixing anything yet.*
+→ About 250 cases. Two 500s: `to=9999-12-31` and `since` with a timezone at the year limits (date overflow). Three minor bugs: NUL bytes stored, re-assigning the same operator wrote history and bumped the version, and `"1"` or `true` accepted as integers. Everything else returned the right 400/404/409/422, with no XSS.
+
+**15 · Fix it**
+> "Corrige los 500 de fechas con límites en los parámetros, devuelve 400 si `from` > `to` y pon `min`/`max` en el front. Rechaza NUL, usa enteros estrictos y no escribas historial si la asignación no cambia. Agrega un test por caso. Un solo commit."
+
+*Fix the date 500s with bounds, reject `from` > `to`, NUL and loose integers, make a same-operator assignment a no-op, and add one test per case.*
+→ Dates limited to 2000–2099 in one shared constant on each side, with a 400 outside that range. The date filters ignore invalid values. The repository no longer overflows. 106 backend tests pass.
+
 ---
 
 ## Review
@@ -244,6 +258,18 @@ Mis respuestas a sus opciones:
 > "Al cambiar de tema muestra 3 opciones, ¿por qué?" · "Dos estados."
 
 → Tenía Sistema/Claro/Oscuro, y con el sistema en oscuro "Sistema" y "Oscuro" se veían iguales. Quedó en Claro ↔ Oscuro, arrancando con la preferencia del sistema.
+
+### Validación de datos
+
+**14 · Probar datos inválidos, sin cambios todavía**
+> "Verifica el ingreso de datos inválidos en la API y la UI: fechas fuera de rango (año 1111, 9999, 5 dígitos), `from` > `to`, textos vacíos, solo espacios, demasiado largos, emojis, NUL y HTML. También ids imposibles, enums y versiones inválidas, y acciones repetidas. Usa la DB local, nunca producción. Dame los hallazgos separados en errores 500, corrupción y UX, sin corregir todavía."
+
+→ Unos 250 casos. Dos errores 500: `to=9999-12-31` y `since` con zona horaria en los extremos de año (desbordamiento de fecha). Tres bugs menores: se guardaban bytes NUL, reasignar el mismo operador escribía historial y subía la versión, y se aceptaban `"1"` o `true` como enteros. Todo lo demás devolvió el 400/404/409/422 correcto, sin XSS.
+
+**15 · Corregir**
+> "Corrige los 500 de fechas con límites en los parámetros, devuelve 400 si `from` > `to` y pon `min`/`max` en el front. Rechaza NUL, usa enteros estrictos y no escribas historial si la asignación no cambia. Agrega un test por caso. Un solo commit."
+
+→ Fechas limitadas a 2000–2099 con una sola constante en cada lado, y 400 fuera de ese rango. Los filtros de fecha ignoran valores inválidos. El repositorio ya no desborda. Pasan 106 tests del backend.
 
 ---
 

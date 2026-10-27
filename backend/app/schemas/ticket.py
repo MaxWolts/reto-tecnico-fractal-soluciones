@@ -1,12 +1,19 @@
 from datetime import datetime
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StrictInt,
+    StringConstraints,
+    field_validator,
+)
 from pydantic.alias_generators import to_camel
 
 from app.domain.status import EventType, Priority, TicketStatus
 
-Trimmed = Annotated[str, StringConstraints(strip_whitespace=True)]
+Trimmed = Annotated[str, StringConstraints(strip_whitespace=True, pattern=r"^[^\x00]*$")]
 
 
 class ApiModel(BaseModel):
@@ -29,7 +36,7 @@ class ChangeStatusRequest(ApiModel):
     diagnosis: Annotated[Trimmed, Field(max_length=1000)] | None = None
     comment: Annotated[Trimmed, Field(max_length=1000)] | None = None
     actor: Annotated[Trimmed, Field(min_length=1, max_length=100)]
-    version: int = Field(ge=1, le=2_147_483_647)
+    version: StrictInt = Field(ge=1, le=2_147_483_647)
 
     @field_validator("diagnosis", "comment")
     @classmethod
@@ -43,9 +50,9 @@ class AddCommentRequest(ApiModel):
 
 
 class AssignRequest(ApiModel):
-    operator_id: int | None
+    operator_id: StrictInt | None
     actor: Annotated[Trimmed, Field(min_length=1, max_length=100)]
-    version: int = Field(ge=1, le=2_147_483_647)
+    version: StrictInt = Field(ge=1, le=2_147_483_647)
 
 
 # responses

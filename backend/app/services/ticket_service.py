@@ -127,8 +127,12 @@ class TicketService:
 
     def assign(self, ticket_id: int, operator_id: int | None, actor: str, version: int) -> dict:
         current = self._require(ticket_id)
+        if current["version"] != version:
+            raise ConcurrencyConflict()
         if TicketStatus(current["status"]) in (TicketStatus.RESOLVED, TicketStatus.CANCELLED):
             raise TicketClosed()
+        if current["assigned_operator_id"] == operator_id:
+            return _to_ticket(current)
         if operator_id is not None and not self._repo.operator_exists(operator_id):
             raise OperatorNotFound()
         row = self._repo.assign(ticket_id, operator_id, actor.strip(), version)

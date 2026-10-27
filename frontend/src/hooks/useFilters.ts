@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
+import { isValidDate } from '../dates'
 import { PRIORITIES, STATUSES, type TicketFilters } from '../types'
-
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
 function fromQuery(search: string): TicketFilters {
   const params = new URLSearchParams(search)
@@ -15,8 +14,8 @@ function fromQuery(search: string): TicketFilters {
   if (status && (STATUSES as string[]).includes(status)) filters.status = status as TicketFilters['status']
   if (priority && (PRIORITIES as string[]).includes(priority)) filters.priority = priority as TicketFilters['priority']
   if (Number.isInteger(operatorId) && operatorId > 0) filters.operatorId = operatorId
-  if (from && DATE_RE.test(from)) filters.from = from
-  if (to && DATE_RE.test(to)) filters.to = to
+  if (from && isValidDate(from)) filters.from = from
+  if (to && isValidDate(to)) filters.to = to
   if (q) filters.q = q
   return filters
 }

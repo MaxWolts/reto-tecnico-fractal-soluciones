@@ -27,7 +27,7 @@ export function Header({ userName, role, onRoleChange, onNameChange, onOpenTicke
 
   function commit() {
     const trimmed = draft.trim()
-    if (trimmed && trimmed !== userName) onNameChange(trimmed)
+    if (trimmed.length >= 2 && trimmed !== userName) onNameChange(trimmed)
     else setDraft(userName)
   }
 

@@ -149,7 +149,11 @@ class TicketRepository:
             params.append(date_from)
         if date_to:
             clauses.append("t.created_at < %s")
-            params.append(date_to + timedelta(days=1))
+            params.append(
+                datetime.combine(date_to, datetime.min.time()) + timedelta(days=1)
+                if date_to < date.max
+                else datetime.max
+            )
         if q:
             clauses.append(
                 "(t.title LIKE %s OR t.asset_code LIKE %s OR CAST(t.id AS CHAR) LIKE %s)"
@@ -185,7 +189,10 @@ class TicketRepository:
         params: list = []
         if since is not None:
             clauses.append("h.created_at > %s")
-            aware = since.replace(tzinfo=UTC) if since.tzinfo is None else since.astimezone(UTC)
+            try:
+                aware = since.replace(tzinfo=UTC) if since.tzinfo is None else since.astimezone(UTC)
+            except OverflowError:
+                aware = since.replace(tzinfo=UTC)
             params.append(aware.replace(tzinfo=None))
         params.append(limit)
         return self._select(

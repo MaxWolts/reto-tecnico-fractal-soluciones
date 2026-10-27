@@ -1,8 +1,12 @@
 from datetime import date
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
+from fastapi.exceptions import RequestValidationError
+from pydantic import AfterValidator
 
 from app.api.deps import get_service
+from app.domain.limits import check_date
 from app.domain.status import Priority, TicketStatus
 from app.schemas.ticket import (
     AddCommentRequest,
@@ -16,6 +20,8 @@ from app.schemas.ticket import (
 from app.services.ticket_service import TicketService
 
 router = APIRouter(prefix="/api", tags=["tickets"])
+
+BoundedDate = Annotated[date, AfterValidator(check_date)]
 
 
 @router.get("/transitions", response_model=list[TransitionOut])
@@ -35,11 +41,14 @@ def list_tickets(
     status: TicketStatus | None = None,
     priority: Priority | None = None,
     operator_id: int | None = Query(None, alias="operatorId"),
-    date_from: date | None = Query(None, alias="from"),
-    date_to: date | None = Query(None, alias="to"),
+    date_from: BoundedDate | None = Query(None, alias="from"),
+    date_to: BoundedDate | None = Query(None, alias="to"),
     q: str | None = Query(None, max_length=100),
     service: TicketService = Depends(get_service),
 ):
+    if date_from and date_to and date_from > date_to:
+        detail = {"loc": ("query", "from"), "msg": "'from' must not be after 'to'"}
+        raise RequestValidationError([{**detail, "type": "value_error"}])
     return service.list_tickets(status, priority, operator_id, date_from, date_to, q)
 
 

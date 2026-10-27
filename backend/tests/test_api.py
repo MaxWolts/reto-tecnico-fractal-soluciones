@@ -151,6 +151,28 @@ def test_version_out_of_range_400(client):
     assert r.json()["errors"][0]["field"] == "version"
 
 
+def test_assign_same_operator_is_noop(client):
+    t = create(client)
+    url = f"/api/tickets/{t['id']}/assignee"
+    body = {"operatorId": 1, "actor": "Ana", "version": 1}
+    assert client.put(url, json=body).json()["version"] == 2
+    history = len(client.get(f"/api/tickets/{t['id']}/history").json())
+    r = client.put(url, json={**body, "version": 2})
+    assert r.status_code == 200
+    assert r.json()["version"] == 2
+    assert len(client.get(f"/api/tickets/{t['id']}/history").json()) == history
+    assert client.put(url, json={**body, "version": 1}).status_code == 409
+
+
+def test_unassign_unassigned_is_noop(client):
+    t = create(client)
+    r = client.put(
+        f"/api/tickets/{t['id']}/assignee", json={"operatorId": None, "actor": "Ana", "version": 1}
+    )
+    assert r.status_code == 200
+    assert r.json()["version"] == 1
+
+
 def test_assign_unknown_operator_404(client):
     t = create(client)
     r = client.put(
@@ -189,6 +211,50 @@ def test_notifications(client):
     assert body[0]["toStatus"] == "IN_PROGRESS"
     since = body[0]["createdAt"]
     assert client.get("/api/notifications", params={"since": since}).json() == []
+
+
+def test_date_to_max_date_400(client):
+    r = client.get("/api/tickets", params={"to": "9999-12-31"})
+    assert r.status_code == 400
+    assert r.json()["errors"][0]["field"] == "to"
+    assert client.get("/api/tickets", params={"from": "0001-01-01"}).status_code == 400
+
+
+def test_since_extreme_timezone_400(client):
+    for since in ("0001-01-01T00:00:00+05:00", "9999-12-31T23:59:59-05:00"):
+        r = client.get("/api/notifications", params={"since": since})
+        assert r.status_code == 400
+        assert r.json()["errors"][0]["field"] == "since"
+
+
+def test_date_from_after_to_400(client):
+    r = client.get("/api/tickets", params={"from": "2025-02-01", "to": "2025-01-01"})
+    assert r.status_code == 400
+    assert r.json()["code"] == "VALIDATION_ERROR"
+
+
+def test_nul_character_400(client):
+    r = client.post("/api/tickets", json={**NEW_TICKET, "title": "Bad\x00title"})
+    assert r.status_code == 400
+    t = create(client)
+    r = client.post(f"/api/tickets/{t['id']}/comments", json={"comment": "a\x00b", "actor": "Ana"})
+    assert r.status_code == 400
+    assert move(client, t["id"], "IN_PROGRESS", 1, comment="a\x00b").status_code == 400
+    r = client.put(
+        f"/api/tickets/{t['id']}/assignee", json={"operatorId": 1, "actor": "A\x00", "version": 1}
+    )
+    assert r.status_code == 400
+
+
+def test_non_strict_ints_400(client):
+    t = create(client)
+    for bad in (True, "1", 2.0):
+        assert move(client, t["id"], "IN_PROGRESS", bad).status_code == 400
+        r = client.put(
+            f"/api/tickets/{t['id']}/assignee",
+            json={"operatorId": bad, "actor": "Ana", "version": 1},
+        )
+        assert r.status_code == 400
 
 
 def test_unhandled_error_is_generic_500(app):

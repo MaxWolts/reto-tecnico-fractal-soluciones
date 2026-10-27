@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { COMPACT_QUERY } from "../breakpoints";
+import { MAX_DATE, MIN_DATE, isValidDate } from "../dates";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import {
   PRIORITIES,
@@ -49,6 +50,12 @@ export function FiltersBar({
   const panelId = useId();
   // The search box is always visible, so it is not counted in the badge.
   const activeCount = Object.keys(filters).filter((k) => k !== "q").length;
+
+  // Empty clears the filter; partial, out-of-range or impossible dates are ignored.
+  function onDateChange(key: "from" | "to", value: string) {
+    if (value === "") onChange({ [key]: undefined });
+    else if (isValidDate(value)) onChange({ [key]: value });
+  }
 
   return (
     <form
@@ -149,8 +156,9 @@ export function FiltersBar({
             type="date"
             className="filters__input"
             value={filters.from ?? ""}
-            max={filters.to}
-            onChange={(e) => onChange({ from: e.target.value || undefined })}
+            min={MIN_DATE}
+            max={filters.to ?? MAX_DATE}
+            onChange={(e) => onDateChange("from", e.target.value)}
           />
         </label>
         <label className="filters__field">
@@ -159,8 +167,9 @@ export function FiltersBar({
             type="date"
             className="filters__input"
             value={filters.to ?? ""}
-            min={filters.from}
-            onChange={(e) => onChange({ to: e.target.value || undefined })}
+            min={filters.from ?? MIN_DATE}
+            max={MAX_DATE}
+            onChange={(e) => onDateChange("to", e.target.value)}
           />
         </label>
         <button
