@@ -25,6 +25,7 @@ Contents: **Decisions** · **My prompts** · **Review** · **Appendix** (full su
 | 7 | Hosting | Aiven + Render + Netlify · Aiven + Vercel | **Aiven (MySQL) + Vercel (frontend and API)**: no cold start during the demo |
 | 8 | Two extra safety checks (DB rules vs code test, DB-level history lock) | Fix now · later | **Later** (listed as next steps) |
 | 9 | UI review against Apple HIG (21 findings) | Apply all · only high · high + key medium | **High + key medium** (11 fixes, one commit); the rest listed as UX next steps |
+| 10 | Theme control | System/Light/Dark · Light/Dark | **Light/Dark**: every click changes something visible |
 
 ---
 
@@ -109,6 +110,18 @@ My answers to its options:
 *Apply the high ones and four medium ones; list the rest as next steps; one commit.*
 → 44 px targets, AA contrast, dark mode, rem type scale, mobile bottom sheet, clearer destructive dialog, motion with reduced-motion support. Checked in the browser on desktop, mobile and dark mode.
 
+**12 · Fix what the audit missed**
+> "Faltó un botón para cambiar entre modo claro y oscuro, y hay que verificar el responsive porque se rompe."
+
+*A theme toggle was missing, and the layout breaks on some screen sizes.*
+→ I measured the layout at 320–1440 px and found 3 breakpoints that broke: header overflow under 480 px, filters pushing the board down on mobile, and chips wrapping at 900–1199 px. Fixed them, added a theme button and checked again at every width: no horizontal overflow.
+
+**13 · Simplify the theme control**
+> "Al cambiar de tema muestra 3 opciones, ¿por qué?" · "Dos estados."
+
+*Why does the toggle cycle through 3 options? Make it two states.*
+→ It had System/Light/Dark, and on a dark OS "System" and "Dark" looked the same. Changed to Light ↔ Dark, starting from the system preference.
+
 ---
 
 ## Review
@@ -149,6 +162,7 @@ Contenido: **Decisiones** · **Mis prompts** · **Revisión** · **Anexo** (prom
 | 7 | Hosting | Aiven + Render + Netlify · Aiven + Vercel | **Aiven (MySQL) + Vercel (frontend y API)**: sin arranque en frío durante la demo |
 | 8 | Dos verificaciones de seguridad extra (reglas de la BD vs prueba de código, bloqueo del historial a nivel de BD) | Corregir ahora · después | **Después** (listadas como próximos pasos) |
 | 9 | Revisión de la interfaz con las HIG de Apple (21 hallazgos) | Aplicar todo · solo altos · altos + medios clave | **Altos + medios clave** (11 mejoras, un commit); el resto como próximos pasos de UX |
+| 10 | Control de tema | Sistema/Claro/Oscuro · Claro/Oscuro | **Claro/Oscuro**: cada clic cambia algo visible |
 
 ---
 
@@ -220,6 +234,16 @@ Mis respuestas a sus opciones:
 > "Aplica los altos (1-7) y los medios 8, 9, 10 y 13. Deja el resto como próximos pasos. Un solo commit."
 
 → Áreas táctiles de 44 px, contraste AA, modo oscuro, escala tipográfica en rem, hoja inferior en móvil, diálogo destructivo más claro y animaciones que respetan reduced-motion. Verificado en el navegador en escritorio, móvil y modo oscuro.
+
+**12 · Corregir lo que la auditoría no vio**
+> "Faltó un botón para cambiar entre modo claro y oscuro, y hay que verificar el responsive porque se rompe."
+
+→ Medí el diseño de 320 a 1440 px y encontré 3 cortes que fallaban: el header desbordaba bajo 480 px, los filtros empujaban el tablero en móvil y los chips se partían entre 900 y 1199 px. Los corregí, agregué un botón de tema y volví a medir en cada ancho: sin scroll horizontal.
+
+**13 · Simplificar el control de tema**
+> "Al cambiar de tema muestra 3 opciones, ¿por qué?" · "Dos estados."
+
+→ Tenía Sistema/Claro/Oscuro, y con el sistema en oscuro "Sistema" y "Oscuro" se veían iguales. Quedó en Claro ↔ Oscuro, arrancando con la preferencia del sistema.
 
 ---
 

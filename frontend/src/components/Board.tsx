@@ -31,7 +31,7 @@ export function Board({ tickets, loading, error, statusFilter, onRetry, onTicket
           </button>
         </div>
       )}
-      <div className="board__columns" style={{ '--columns': columns.length } as CSSProperties}>
+      <div className={`board__columns${columns.length > 3 ? ' board__columns--wide' : ''}`} style={{ '--columns': columns.length } as CSSProperties}>
         {columns.map((status) => {
           const items = tickets.filter((t) => t.status === status)
           return (

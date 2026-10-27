@@ -24,7 +24,7 @@
 
 .board__columns {
   display: grid;
-  grid-template-columns: repeat(var(--columns, 3), minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
 }
 
@@ -96,8 +96,19 @@
   animation: pulse 1.4s ease-in-out infinite;
 }
 
-@media (max-width: 900px) {
+@media (min-width: 700px) {
   .board__columns {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(var(--columns, 3), minmax(0, 1fr));
+  }
+
+  /* Four columns: keep each readable, scroll inside the board only if needed. */
+  .board__columns--wide {
+    grid-template-columns: repeat(4, minmax(230px, 1fr));
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+  }
+
+  .board__columns--wide > .board__column {
+    scroll-snap-align: start;
   }
 }

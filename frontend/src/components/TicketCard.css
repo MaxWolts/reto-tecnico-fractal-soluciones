@@ -21,8 +21,9 @@
 .ticket-card__top,
 .ticket-card__bottom {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-1) var(--space-2);
 }
 
 .ticket-card__top {
@@ -31,6 +32,7 @@
 
 .ticket-card__code,
 .ticket-card__time {
+  white-space: nowrap;
   font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
@@ -42,6 +44,7 @@
 }
 
 .ticket-card__asset {
+  white-space: nowrap;
   padding: 2px 8px;
   border-radius: var(--radius-pill);
   background: var(--status-in-progress-bg);
@@ -51,6 +54,7 @@
 }
 
 .ticket-card__priority {
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: 5px;

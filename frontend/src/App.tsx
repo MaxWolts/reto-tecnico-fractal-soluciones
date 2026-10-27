@@ -6,6 +6,7 @@ import { Header } from './components/Header'
 import { NewTicketSheet } from './components/NewTicketSheet'
 import { TicketDrawer } from './components/TicketDrawer'
 import { ToastProvider } from './components/ToastProvider'
+import { SHEET_QUERY } from './breakpoints'
 import { useCurrentUser } from './hooks/useCurrentUser'
 import { useFilters } from './hooks/useFilters'
 import { useMediaQuery } from './hooks/useMediaQuery'
@@ -19,7 +20,7 @@ function App() {
   const operators = useOperators()
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
-  const isMobile = useMediaQuery('(max-width: 900px)')
+  const isMobile = useMediaQuery(SHEET_QUERY)
 
   return (
     <ToastProvider>

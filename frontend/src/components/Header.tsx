@@ -3,6 +3,7 @@ import type { Role } from '../types'
 import { initials } from '../utils'
 import { PencilIcon } from './Icons'
 import { NotificationBell } from './NotificationBell'
+import { ThemeToggle } from './ThemeToggle'
 import './Header.css'
 
 interface HeaderProps {
@@ -40,6 +41,7 @@ export function Header({ userName, role, onRoleChange, onNameChange, onOpenTicke
         <h1 className="header__title">Maintenance · Tickets</h1>
       </div>
       <div className="header__user">
+        <ThemeToggle />
         <NotificationBell onOpenTicket={onOpenTicket} />
         <div className="header__roles" role="group" aria-label="Role">
           {ROLES.map((r) => (

@@ -10,6 +10,7 @@
 }
 
 .header__brand {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: var(--space-4);
@@ -30,6 +31,7 @@
 
 .header__title {
   margin: 0;
+  white-space: nowrap;
   font-size: var(--text-md);
   font-weight: 600;
 }
@@ -71,6 +73,9 @@
 }
 
 .header__name {
+  min-width: 0;
+  max-width: 100%;
+  text-overflow: ellipsis;
   padding: 0 28px 0 var(--space-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -114,8 +119,67 @@
   font-weight: 700;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1199px) {
   .header {
     padding: var(--space-3) var(--space-4);
+  }
+}
+
+/* Narrow: two tidy rows. Row 1 logo + theme, bell, avatar. Row 2 role toggle + name. */
+@media (max-width: 639px) {
+  .header {
+    row-gap: calc(var(--space-3) / 2);
+    column-gap: var(--space-2);
+  }
+
+  .header::after {
+    content: '';
+    order: 5;
+    flex: 0 0 100%;
+    height: 0;
+  }
+
+  .header__user {
+    display: contents;
+  }
+
+  .header__brand {
+    order: 1;
+    flex: 1 1 0;
+  }
+
+  .header__user > .icon-btn {
+    order: 2;
+  }
+
+  .header__user > .bell {
+    order: 3;
+  }
+
+  .header__avatar {
+    order: 4;
+    flex: none;
+  }
+
+  .header__roles {
+    order: 6;
+    flex: none;
+  }
+
+  .header__name-wrap {
+    order: 7;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .header__name {
+    width: 100%;
+  }
+}
+
+@media (max-width: 559px) {
+  .header__divider,
+  .header__title {
+    display: none;
   }
 }
