@@ -15,6 +15,9 @@
   --color-accent: #ffa800;
   --color-accent-hover: #e69800;
   --color-accent-text: #12355b;
+  /* Brand logo colors: identical in every theme (not overridden in dark blocks). */
+  --color-brand-blue: #2a94ca;
+  --color-brand-orange: #ffb82b;
   --color-danger: #c62f2f;
   --color-danger-solid: #c62f2f;
   --color-danger-bg: #fdecec;

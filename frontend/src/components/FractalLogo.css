@@ -1,0 +1,36 @@
+.fractal-logo {
+  display: block;
+  flex: none;
+  height: 1.5rem;
+  width: auto;
+  max-width: 100%;
+}
+
+/* Narrow: smaller logo so it does not collide with the header buttons. */
+@media (max-width: 639px) {
+  .fractal-logo {
+    height: 1.125rem;
+  }
+}
+
+.fractal-logo__letters {
+  fill: none;
+  stroke: var(--color-brand-blue);
+  stroke-width: 4;
+  stroke-linejoin: miter;
+}
+
+.fractal-logo__a {
+  fill: var(--color-brand-orange);
+  fill-rule: evenodd;
+}
+
+@media (forced-colors: active) {
+  .fractal-logo__letters {
+    stroke: CanvasText;
+  }
+
+  .fractal-logo__a {
+    fill: CanvasText;
+  }
+}

@@ -136,6 +136,20 @@ My answers to its options:
 *Fix the date 500s with bounds, reject `from` > `to`, NUL and loose integers, make a same-operator assignment a no-op, and add one test per case.*
 → Dates limited to 2000–2099 in one shared constant on each side, with a 400 outside that range. The date filters ignore invalid values. The repository no longer overflows. 106 backend tests pass.
 
+### Brand logo
+
+**16 · Check the logo against the mockup**
+> "Compara el logo del mockup con el de la app: el original usa dos colores. Mide los colores reales en la imagen y verifica el contraste en tema claro y oscuro. Prefiero mantener los colores de la empresa y ajustar el fondo si hace falta. Sin cambios todavía."
+
+*Compare the mockup logo with the app's. Measure the real brand colors and check contrast in both themes, keeping the brand colors. No changes yet.*
+→ The logo uses two colors: blue letters (`#2a94ca`) and two orange triangle A's (`#ffb82b`); the app had it all in navy. Contrast on the dark header is 4.71:1 for the blue and 9.24:1 for the orange, so the brand colors work in both themes without changing the background.
+
+**17 · Accessible SVG logo**
+> "Haz el logo en SVG, fiel al original: las dos A son triángulos naranja huecos, sin depender de fuentes. Que sea accesible: un solo nombre para lectores de pantalla, no enfocable y visible en alto contraste. Pruébalo en claro, oscuro y a 320 px antes del commit."
+
+*Build the logo as an accessible SVG with hollow orange triangle A's, and test it in light, dark and at 320 px before committing.*
+→ An inline SVG with drawn letters, `role="img"` with `<title>`, `focusable="false"`, and `forced-colors` support. At 320 px it collided with the header buttons, so it is smaller on narrow screens.
+
 ---
 
 ## Review
@@ -270,6 +284,18 @@ Mis respuestas a sus opciones:
 > "Corrige los 500 de fechas con límites en los parámetros, devuelve 400 si `from` > `to` y pon `min`/`max` en el front. Rechaza NUL, usa enteros estrictos y no escribas historial si la asignación no cambia. Agrega un test por caso. Un solo commit."
 
 → Fechas limitadas a 2000–2099 con una sola constante en cada lado, y 400 fuera de ese rango. Los filtros de fecha ignoran valores inválidos. El repositorio ya no desborda. Pasan 106 tests del backend.
+
+### Logo de marca
+
+**16 · Revisar el logo contra el mockup**
+> "Compara el logo del mockup con el de la app: el original usa dos colores. Mide los colores reales en la imagen y verifica el contraste en tema claro y oscuro. Prefiero mantener los colores de la empresa y ajustar el fondo si hace falta. Sin cambios todavía."
+
+→ El logo usa dos colores: letras en azul (`#2a94ca`) y las dos A como triángulos naranja (`#ffb82b`); la app lo tenía todo en navy. Sobre el header oscuro, el azul da 4.71:1 y el naranja 9.24:1, así que los colores de la marca funcionan en los dos temas sin cambiar el fondo.
+
+**17 · Logo en SVG accesible**
+> "Haz el logo en SVG, fiel al original: las dos A son triángulos naranja huecos, sin depender de fuentes. Que sea accesible: un solo nombre para lectores de pantalla, no enfocable y visible en alto contraste. Pruébalo en claro, oscuro y a 320 px antes del commit."
+
+→ SVG en línea con las letras dibujadas, `role="img"` con `<title>`, `focusable="false"` y soporte de `forced-colors`. A 320 px chocaba con los botones del header, así que en pantallas angostas es más chico.
 
 ---
 

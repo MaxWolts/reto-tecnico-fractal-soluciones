@@ -1,6 +1,7 @@
 import { useId, useState } from 'react'
 import type { Role } from '../types'
 import { initials } from '../utils'
+import { FractalLogo } from './FractalLogo'
 import { PencilIcon } from './Icons'
 import { NotificationBell } from './NotificationBell'
 import { ThemeToggle } from './ThemeToggle'
@@ -34,9 +35,7 @@ export function Header({ userName, role, onRoleChange, onNameChange, onOpenTicke
   return (
     <header className="header">
       <div className="header__brand">
-        <span className="header__logo" aria-label="Fractal">
-          FRACTAL
-        </span>
+        <FractalLogo />
         <span className="header__divider" aria-hidden="true" />
         <h1 className="header__title">Maintenance · Tickets</h1>
       </div>

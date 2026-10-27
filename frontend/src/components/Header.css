@@ -16,13 +16,6 @@
   gap: var(--space-4);
 }
 
-.header__logo {
-  font-size: var(--text-2xl);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--color-navy);
-}
-
 .header__divider {
   width: 1px;
   height: 24px;
